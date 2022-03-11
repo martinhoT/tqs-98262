@@ -3,19 +3,35 @@
   <ID>JAVA</ID>
   <OriginalElement />
   <nodes>
-    <node x="252.0" y="-34.5">euromillions.Dip</node>
-    <node x="-31.0" y="-16.5">sets.SetOfNaturals</node>
-    <node x="248.0" y="289.5">euromillions.EuromillionsDraw</node>
-    <node x="-36.5" y="307.5">euromillions.CuponEuromillions</node>
+    <node x="-15.0" y="-15.0">com</node>
+    <node x="-15.0" y="-15.0">images</node>
+    <node x="-15.0" y="-15.0">netscape</node>
+    <node x="-15.0" y="-15.0">sets</node>
+    <node x="-15.0" y="-15.0">org</node>
+    <node x="-15.0" y="-15.0">toolbarButtonGraphics</node>
+    <node x="-15.0" y="-15.0">euromillions</node>
+    <node x="-15.0" y="-15.0">sun</node>
+    <node x="-15.0" y="-15.0">jdk</node>
+    <node x="-15.0" y="-15.0">META-INF</node>
+    <node x="-15.0" y="-15.0">groovyjarjarasm</node>
+    <node x="-15.0" y="-15.0">java</node>
+    <node x="-15.0" y="-15.0">groovy</node>
+    <node x="-15.0" y="-15.0">ui</node>
+    <node x="-15.0" y="-15.0">javax</node>
+    <node x="-15.0" y="-93.0">groovyjarjarpicocli</node>
+    <node x="-15.0" y="126.0">groovyjarjarcommonscli</node>
+    <node x="-48.0" y="-135.0">groovyjarjarantlr</node>
   </nodes>
   <notes />
   <edges />
-  <settings layout="Orthogonal" zoom="1.0" x="571.0" y="539.0" />
-  <SelectedNodes />
+  <settings layout="Hierarchic" zoom="1.0" showDependencies="false" x="181.0" y="156.0" />
+  <SelectedNodes>
+    <node>groovyjarjarpicocli</node>
+  </SelectedNodes>
   <Categories>
     <Category>Fields</Category>
-    <Category>Methods</Category>
     <Category>Inner Classes</Category>
+    <Category>Methods</Category>
   </Categories>
   <SCOPE>All</SCOPE>
   <VISIBILITY>private</VISIBILITY>

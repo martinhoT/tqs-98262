@@ -42,6 +42,9 @@ public class SetOfNaturals implements Iterable<Integer> {
 
 
 	public boolean intersects(SetOfNaturals subset) {
+		for (int number : subset)
+			if (contains(number))
+				return true;
 		return false;
 	}
 
@@ -75,7 +78,8 @@ public class SetOfNaturals implements Iterable<Integer> {
 		}
 
 		final SetOfNaturals other = (SetOfNaturals) obj;
-		return Objects.equals(this.collection, other.collection);
+		return this.size() == other.size() && collection.stream().allMatch(other::contains);
+		// return Objects.equals(this.collection, other.collection);
 	}
 
 

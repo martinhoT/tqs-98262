@@ -13,6 +13,10 @@ import java.util.Random;
  */
 public class Dip {
 
+    public static final int NUMBER_RANGE = 50;
+    public static final int NUMBER_QUANTITY = 5;
+    public static final int STAR_RANGE = 12;
+    public static final int STAR_QUANTITY = 2;
 
     private SetOfNaturals numbers;
     private SetOfNaturals starts;
@@ -25,7 +29,7 @@ public class Dip {
     public Dip(int[] arrayOfNumbers, int[] arrayOfStarts) {
         this();
 
-        if (5 == arrayOfNumbers.length && 2 == arrayOfStarts.length) {
+        if (NUMBER_QUANTITY == arrayOfNumbers.length && STAR_QUANTITY == arrayOfStarts.length) {
             numbers.add(arrayOfNumbers);
             starts.add(arrayOfStarts);
         } else {
@@ -46,15 +50,15 @@ public class Dip {
         Random generator = new Random();
 
         Dip randomDip = new Dip();
-        for (int i = 0; i < 5; ) {
-            int candidate = generator.nextInt(49) + 1;
+        for (int i = 0; i < NUMBER_QUANTITY; ) {
+            int candidate = generator.nextInt(NUMBER_RANGE) + 1;
             if (!randomDip.getNumbersColl().contains(candidate)) {
                 randomDip.getNumbersColl().add(candidate);
                 i++;
             }
         }
-        for (int i = 0; i < 2; ) {
-            int candidate = generator.nextInt(9) + 1;
+        for (int i = 0; i < STAR_QUANTITY; ) {
+            int candidate = generator.nextInt(STAR_RANGE) + 1;
             if (!randomDip.getStarsColl().contains(candidate)) {
                 randomDip.getStarsColl().add(candidate);
                 i++;

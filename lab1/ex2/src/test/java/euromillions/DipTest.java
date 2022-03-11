@@ -6,6 +6,9 @@ package euromillions;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.junit.jupiter.api.*;
 
 /**
@@ -41,9 +44,38 @@ public class DipTest {
 
     @Test
     public void testFormat() {
-        // note: correct the implementation of the format(), not the test...
         String result = instance.format();
         assertEquals("N[ 10 20 30 40 50] S[  1  2]", result, "format as string: formatted string not as expected. ");
+    }
+
+    @Test
+    public void testStarRange() {
+        /**
+         * Using the constants
+         */
+        assertEquals(Dip.STAR_RANGE, 12);
+
+        /**
+         * Using the generateRandomDip method (bad...)
+         */
+        Set<Integer> possibleStars = new HashSet<>();
+        final int maxIterations = 100000;
+        int i;
+        for (i = 0; i < maxIterations && possibleStars.size() < 12; i++)
+            Dip.generateRandomDip().getStarsColl().forEach(possibleStars::add);
+
+        // Check that the loop has not ended because of too many iterations
+        assertNotEquals(i, maxIterations);
+        assertEquals(possibleStars.size(), 12);
+
+        boolean validRange = true;
+        for (Integer possibleStar : possibleStars)
+            if (possibleStar < 1 || possibleStar > 12) {
+                validRange = false;
+                break;
+            }
+        
+        assertTrue(validRange);
     }
 
 }

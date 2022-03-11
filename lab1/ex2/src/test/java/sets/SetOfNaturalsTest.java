@@ -60,6 +60,33 @@ public class SetOfNaturalsTest {
         assertFalse(setA.intersects(setB), "no intersection but was reported as existing");
 
     }
+    
+
+
+    @Test
+    public void testIntersectForIntersection() {
+        assertTrue(setB.intersects(setC), "intersection but was reported as not exiting");
+    }
+
+    @Test
+    public void testEqualSets() {
+        assertEquals(setB, setD, "sets are equal but were reported as being different");
+        assertNotEquals(setB, setC, "sets are different but were reported as being equal");
+    }
+
+    @Test
+    public void testNaturalNumbers() {
+        assertDoesNotThrow(() -> setA.add(1));
+        assertThrows(IllegalArgumentException.class, () -> setA.add(0));
+        assertThrows(IllegalArgumentException.class, () -> setA.add(-1));
+    }
+
+    @Test
+    public void testAlreadyExistent() {
+        setA.add(9);
+        assertThrows(IllegalArgumentException.class, () -> setA.add(9));
+        assertThrows(IllegalArgumentException.class, () -> SetOfNaturals.fromArray(new int[]{5, 4, 2, 7, 4, 8, 6}));
+    }
 
 
 }
