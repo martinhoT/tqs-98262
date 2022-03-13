@@ -53,7 +53,13 @@ public class DipTest {
         /**
          * Using the constants
          */
-        assertEquals(Dip.STAR_RANGE, 12);
+        assertDoesNotThrow(() -> new Dip(new int[]{1, 2, 3, 4, 5}, new int[]{1, 2}));
+        assertDoesNotThrow(() -> new Dip(new int[]{1, 2, 3, 4, 5}, new int[]{3, 4}));
+        assertDoesNotThrow(() -> new Dip(new int[]{1, 2, 3, 4, 5}, new int[]{5, 6}));
+        assertDoesNotThrow(() -> new Dip(new int[]{1, 2, 3, 4, 5}, new int[]{7, 8}));
+        assertDoesNotThrow(() -> new Dip(new int[]{1, 2, 3, 4, 5}, new int[]{9, 10}));
+        assertDoesNotThrow(() -> new Dip(new int[]{1, 2, 3, 4, 5}, new int[]{11, 12}));
+        assertThrows(IllegalArgumentException.class, () -> new Dip(new int[]{1, 2, 3, 4, 5}, new int[]{12, 13}));
 
         /**
          * Using the generateRandomDip method (bad...)
