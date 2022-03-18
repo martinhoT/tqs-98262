@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Map.Entry;
@@ -65,7 +66,7 @@ public class AddressResolverTest {
         
         Map<String, String> requestMap = new HashMap<>();
         for (int i = 0; i < locations.size(); i++)
-            requestMap.put(String.format(mainUrlFormat, locations.get(i)[0], locations.get(i)[1]), responses.get(i));
+            requestMap.put(String.format(Locale.US, mainUrlFormat, locations.get(i)[0], locations.get(i)[1]), responses.get(i));
         
         List<Address> results = Arrays.asList(
             new Address(
@@ -97,6 +98,8 @@ public class AddressResolverTest {
         );
 
         for (Entry<String, String> entry : requestMap.entrySet())
+            // doReturn(entry.getValue())
+            //     .when(httpClient.doHttpGet(entry.getKey()));
             when(httpClient.doHttpGet(entry.getKey()))
                 .thenReturn(entry.getValue());
 

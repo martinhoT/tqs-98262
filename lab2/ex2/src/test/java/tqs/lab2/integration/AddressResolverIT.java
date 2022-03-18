@@ -4,9 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
@@ -15,7 +13,6 @@ import org.junit.jupiter.api.Test;
 
 import tqs.lab2.Address;
 import tqs.lab2.AddressResolver;
-import tqs.lab2.ISimpleHttpClient;
 import tqs.lab2.TqsBasicHttpClient;
 
 public class AddressResolverIT {

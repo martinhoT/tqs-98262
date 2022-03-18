@@ -1,7 +1,6 @@
 package tqs.lab2;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.Locale;
 import java.util.Optional;
 
