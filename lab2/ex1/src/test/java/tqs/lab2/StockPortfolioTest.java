@@ -20,8 +20,6 @@ public class StockPortfolioTest {
 
     private StocksPortfolio stocksPortfolio;
 
-    public StockPortfolioTest() {}
-
     @BeforeEach
     public void beforeEach() {
         stocksPortfolio = new StocksPortfolio(stockMarket);
