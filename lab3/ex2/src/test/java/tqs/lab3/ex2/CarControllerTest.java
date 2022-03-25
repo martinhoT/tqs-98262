@@ -18,8 +18,9 @@ import java.util.Optional;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -56,10 +57,16 @@ public class CarControllerTest {
             catch (Exception e) { e.printStackTrace(); }
         });
 
-        for (int i = 0; i < cars.size(); i++)
-            assertThat(mvcGetCarById((long) i), equalTo( ResponseEntity.ok(cars.get(i)) ));
+        List<Car> carsReturned = convertMvcResultIntoCarList(mvcGetAllCars());
+        for (int i = 0; i < cars.size(); i++) {
+            ResultActions mvcResponse = mvcGetCarById((long) i).andExpect(status().isOk());
+            assertTrue(convertMvcResultIntoCar(mvcResponse).same( cars.get(i)) );
+            assertTrue(carsReturned.get(i).same( cars.get(i) ));
+        }
 
-        assertThat(convertMvcResultIntoCarList(mvcGetAllCars()), containsInAnyOrder(cars));
+        assertThat(carsReturned, hasSize(6));
+
+        verify(carService, times(cars.size())).save(any());
     }
 
     @Test
@@ -81,15 +88,16 @@ public class CarControllerTest {
         // Mocking
         when(carService.save(car)).thenReturn(car);
 
-        assertThat(mvcCreateCar(car), equalTo( ResponseEntity.ok(car)) );
+        Car carReturned = convertMvcResultIntoCar( mvcCreateCar(car).andExpect(status().isOk()) );
+        assertTrue(carReturned.same(car));
     }
 
-    @Test
-    public void whenGetCarByIllegalId_thenThrowIllegalArgument() {
-        assertThrows(IllegalArgumentException.class, () -> mvcGetCarById(-1L));
-        assertThrows(IllegalArgumentException.class, () -> mvcGetCarById(-10L));
-        assertThrows(IllegalArgumentException.class, () -> mvcGetCarById(-176349076234907L));
-    }
+//    @Test
+//    public void whenGetCarByIllegalId_thenThrowIllegalArgument() {
+//        assertThrows(IllegalArgumentException.class, () -> mvcGetCarById(-1L));
+//        assertThrows(IllegalArgumentException.class, () -> mvcGetCarById(-10L));
+//        assertThrows(IllegalArgumentException.class, () -> mvcGetCarById(-176349076234907L));
+//    }
 
     private ResultActions mvcCreateCar(Car car) throws Exception {
         return mvc.perform(
@@ -99,7 +107,6 @@ public class CarControllerTest {
         );
     }
 
-    // TODO: jfc
     private ResultActions mvcGetCarById(Long id) throws Exception {
         return mvc.perform(
                 get("/api/cars")
@@ -115,6 +122,12 @@ public class CarControllerTest {
         );
     }
 
+    private Car convertMvcResultIntoCar(ResultActions resultActions) throws UnsupportedEncodingException {
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+        return JsonUtils.gson.fromJson(response, Car.class);
+    }
+
+    // TODO: jfc
     private List<Car> convertMvcResultIntoCarList(ResultActions resultActions) throws UnsupportedEncodingException {
         String response = resultActions.andReturn().getResponse().getContentAsString();
         JsonElement json = JsonUtils.gson.fromJson(response, JsonElement.class);
