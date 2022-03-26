@@ -11,6 +11,7 @@ import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -26,7 +27,7 @@ public class CarServiceTest {
     public void whenGetExistingCar_thenReturnCar() {
         Car car = new Car("Rover", "OG");
 
-        when(carRepository.getById(0L)).thenReturn(car);
+        when(carRepository.findByCarId(0L)).thenReturn(car);
 
         assertThat(carService.getCarDetails(0L), equalTo(Optional.of(car)));
     }
@@ -39,14 +40,16 @@ public class CarServiceTest {
     @Test
     public void whenListOfCarsSaved_thenListOfCarsPresent() {
         List<Car> cars = List.of(
-                new Car("Ferrari", "ABC"),
-                new Car("Porsche", "Bruh"),
-                new Car("Smart", "JK")
+                new Car(0L, "Ferrari", "ABC"),
+                new Car(1L, "Porsche", "Bruh"),
+                new Car(2L, "Smart", "JK")
         );
 
         when(carRepository.findAll()).thenReturn(cars);
 
-        assertThat(carService.getAllCars(), containsInAnyOrder(cars));
+        List<Car> carsReturned = carService.getAllCars();
+        carsReturned.forEach((car) -> assertEquals( car, cars.get(Math.toIntExact(car.getCarId())) ));
+        assertThat(carsReturned, hasSize(cars.size()));
     }
 
     @Test

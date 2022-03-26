@@ -11,19 +11,19 @@ import org.springframework.test.web.servlet.ResultActions;
 import com.google.gson.JsonElement;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(CarController.class)
 public class CarControllerTest {
@@ -47,8 +47,10 @@ public class CarControllerTest {
 
         // Mocking
         for (int i = 0; i < cars.size(); i++) {
-            when(carService.getCarDetails((long) i)).thenReturn(Optional.of(cars.get(i)));
-            when(carService.save(cars.get(i))).thenReturn(cars.get(i));
+            Car car = cars.get(i);
+            car.setCarId((long) i);
+            when(carService.getCarDetails((long) i)).thenReturn(Optional.of(car));
+            when(carService.save(car)).thenReturn(car);
         }
         when(carService.getAllCars()).thenReturn(cars);
 
@@ -60,23 +62,30 @@ public class CarControllerTest {
         List<Car> carsReturned = convertMvcResultIntoCarList(mvcGetAllCars());
         for (int i = 0; i < cars.size(); i++) {
             ResultActions mvcResponse = mvcGetCarById((long) i).andExpect(status().isOk());
-            assertTrue(convertMvcResultIntoCar(mvcResponse).same( cars.get(i)) );
-            assertTrue(carsReturned.get(i).same( cars.get(i) ));
+            Car carReturnedSingle = convertMvcResultIntoCar(mvcResponse);
+            Car carCreated = cars.get(i);
+            System.err.println(carCreated);
+            assertEquals(carReturnedSingle.getMaker(), carCreated.getMaker());
+            assertEquals(carReturnedSingle.getModel(), carCreated.getModel());
+
+            Car carReturnedList = carsReturned.get(i);
+            assertEquals(carReturnedList.getMaker(), carCreated.getMaker());
+            assertEquals(carReturnedList.getModel(), carCreated.getModel());
         }
 
-        assertThat(carsReturned, hasSize(6));
+        assertThat(carsReturned, hasSize(cars.size()));
 
         verify(carService, times(cars.size())).save(any());
     }
 
     @Test
-    public void whenQueryInexistentCars_thenReturnNoCarsAndThrow() throws Exception {
+    public void whenQueryInexistentCars_thenReturnNoCars() throws Exception {
         // Mocking
         when(carService.getCarDetails(anyLong())).thenReturn(Optional.empty());
         when(carService.getAllCars()).thenReturn(new ArrayList<>());
 
-        assertThat(mvcGetCarById(0L), equalTo(ResponseEntity.notFound()));
-        assertThat(mvcGetCarById(10L), equalTo(ResponseEntity.notFound()));
+        mvcGetCarById(0L).andExpect(status().isNotFound());
+        mvcGetCarById(10L).andExpect(status().isNotFound());
 
         assertThat(convertMvcResultIntoCarList(mvcGetAllCars()), empty());
     }
@@ -84,20 +93,26 @@ public class CarControllerTest {
     @Test
     public void whenCarAdded_thenSameCarReturned() throws Exception {
         Car car = new Car("Rover", "OG");
+        car.setCarId(0L);
 
         // Mocking
         when(carService.save(car)).thenReturn(car);
 
         Car carReturned = convertMvcResultIntoCar( mvcCreateCar(car).andExpect(status().isOk()) );
-        assertTrue(carReturned.same(car));
+        // Test if they are the same Hibernate entity (equals() is implemented that way)
+        assertEquals(carReturned, car);
+        assertEquals(carReturned.getMaker(), car.getMaker());
+        assertEquals(carReturned.getModel(), car.getModel());
     }
 
-//    @Test
-//    public void whenGetCarByIllegalId_thenThrowIllegalArgument() {
-//        assertThrows(IllegalArgumentException.class, () -> mvcGetCarById(-1L));
-//        assertThrows(IllegalArgumentException.class, () -> mvcGetCarById(-10L));
-//        assertThrows(IllegalArgumentException.class, () -> mvcGetCarById(-176349076234907L));
-//    }
+    @Test
+    public void whenCarAddedWithId_thenIgnoreId() throws Exception {
+        Car car = new Car("Rover", "OG");
+        car.setCarId(0L);
+        when(carService.getCarDetails(car.getCarId())).thenReturn(Optional.of(car));
+
+        mvcCreateCar(car).andExpect(status().isConflict());
+    }
 
     private ResultActions mvcCreateCar(Car car) throws Exception {
         return mvc.perform(
@@ -109,9 +124,8 @@ public class CarControllerTest {
 
     private ResultActions mvcGetCarById(Long id) throws Exception {
         return mvc.perform(
-                get("/api/cars")
+                get("/api/cars/{id}", id)
                 .contentType(MediaType.APPLICATION_JSON)
-                .param("id", String.valueOf(id))
         );
     }
 
@@ -123,13 +137,13 @@ public class CarControllerTest {
     }
 
     private Car convertMvcResultIntoCar(ResultActions resultActions) throws UnsupportedEncodingException {
-        String response = resultActions.andReturn().getResponse().getContentAsString();
+        String response = resultActions.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         return JsonUtils.gson.fromJson(response, Car.class);
     }
 
     // TODO: jfc
     private List<Car> convertMvcResultIntoCarList(ResultActions resultActions) throws UnsupportedEncodingException {
-        String response = resultActions.andReturn().getResponse().getContentAsString();
+        String response = resultActions.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         JsonElement json = JsonUtils.gson.fromJson(response, JsonElement.class);
         List<Car> carsResponse = new ArrayList<>();
         json.getAsJsonArray().forEach((elem) -> carsResponse.add(JsonUtils.gson.fromJson(elem, Car.class)));

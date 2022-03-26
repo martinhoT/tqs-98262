@@ -23,7 +23,7 @@ public class CarService {
     }
 
     public Optional<Car> getCarDetails(Long id) {
-        return carRepository.findById(id);
+        return Optional.ofNullable(carRepository.findByCarId(id));
     }
 
 }

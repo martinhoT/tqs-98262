@@ -13,6 +13,7 @@ import java.util.Objects;
 @Setter
 @NoArgsConstructor
 @RequiredArgsConstructor
+@AllArgsConstructor
 @ToString
 @Entity
 public class Car {

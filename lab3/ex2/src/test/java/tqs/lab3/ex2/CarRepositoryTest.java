@@ -24,23 +24,15 @@ public class CarRepositoryTest {
     public void whenCarSaved_thenCarPersisted() {
         Car car = new Car("Rover", "OG");
 
-        car.setCarId(0L);
         entityManager.persistAndFlush(car);
-        Car persisted = carRepository.findByCarId(0L);
+        Car persisted = carRepository.findByCarId(1L);
         assertThat(persisted).isEqualTo(car);
         assertTrue(persisted.same(car));
 
-        car.setCarId(1L);
-        entityManager.persistAndFlush(car);
-        persisted = carRepository.findByCarId(1L);
-        assertThat(persisted).isEqualTo(car);
-        assertTrue(persisted.same(car));
-
-        car.setCarId(0L);
         car.setMaker("Peugeot");
         car.setModel("The");
         entityManager.persistAndFlush(car);
-        persisted = carRepository.findByCarId(0L);
+        persisted = carRepository.findByCarId(1L);
         assertThat(persisted).isEqualTo(car);
         assertTrue(persisted.same(car));
     }
@@ -65,7 +57,7 @@ public class CarRepositoryTest {
         cars.forEach(entityManager::persist);
         entityManager.flush();
 
-        IntStream.range(0, cars.size()).forEach((id) -> assertTrue( carRepository.getById((long) id).same( cars.get(id) ) ));
+        IntStream.range(0, cars.size()).forEach((id) -> assertTrue( carRepository.getById((long) id+1).same( cars.get(id) ) ));
         assertThat(cars).hasSize(cars.size());
     }
 
