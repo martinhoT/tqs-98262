@@ -141,7 +141,7 @@ public class CarControllerTest {
         return JsonUtils.gson.fromJson(response, Car.class);
     }
 
-    // TODO: jfc
+    // jfc
     private List<Car> convertMvcResultIntoCarList(ResultActions resultActions) throws UnsupportedEncodingException {
         String response = resultActions.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         JsonElement json = JsonUtils.gson.fromJson(response, JsonElement.class);

@@ -40,9 +40,9 @@ public class CarServiceTest {
     @Test
     public void whenListOfCarsSaved_thenListOfCarsPresent() {
         List<Car> cars = List.of(
-                new Car(0L, "Ferrari", "ABC"),
-                new Car(1L, "Porsche", "Bruh"),
-                new Car(2L, "Smart", "JK")
+                new Car(1L, "Ferrari", "ABC"),
+                new Car(2L, "Porsche", "Bruh"),
+                new Car(3L, "Smart", "JK")
         );
 
         when(carRepository.findAll()).thenReturn(cars);
