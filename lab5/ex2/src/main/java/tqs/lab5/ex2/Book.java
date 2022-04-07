@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
@@ -14,5 +15,7 @@ public class Book {
     private final String title;
     private final String author;
     private final Date published;
+    private final boolean booked;
+    private final List<String> categories;
 
 }

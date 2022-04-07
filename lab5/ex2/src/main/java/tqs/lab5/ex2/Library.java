@@ -1,11 +1,12 @@
 package tqs.lab5.ex2;
 
+import tqs.lab5.ex2.filters.SearchFilter;
+
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Library {
     private final List<Book> store = new ArrayList<>();
@@ -14,13 +15,12 @@ public class Library {
         store.add(book);
     }
 
-    public List<Book> findBooks(final Date from, final Date to) {
-        Calendar end = Calendar.getInstance();
-        end.setTime(to);
-        end.roll(Calendar.YEAR, 1);
-
-        return store.stream().filter(book -> from.before(book.getPublished()) && end.getTime()
-                .after(book.getPublished()))
+    public List<Book> findBooks(List<SearchFilter> filters) {
+        Stream<Book> stream = store.stream();
+        for (SearchFilter filter : filters) {
+            stream = stream.filter(filter);
+        }
+        return stream
                 .sorted(Comparator.comparing(Book::getPublished).reversed())
                 .collect(Collectors.toList());
     }

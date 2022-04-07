@@ -17,9 +17,9 @@ Feature: Standard book search
     Then 1 book should have been found
     And that book should have the title 'How to cook a dino'
 
-  Scenario:
+  Scenario: Search books by author
     Given a book with the title 'How to hunt a dino', written by 'Fred Flintstone', published in 28 February 2012
-    When the customer searches for books authored by 'Fred Flintstone'
+    When the customer searches for books written by 'Fred Flintstone'
     Then 2 books should have been found
     And Book 1 should have the title 'How to cook a dino'
     And Book 2 should have the title 'How to hunt a dino'
@@ -41,21 +41,21 @@ Feature: Book categories
       | category  | number_of_books |
       | Action    | 2               |
       | Romance   | 1               |
-      |           | 4               |
+      | Anything  | 4               |
 
 
 
 Feature: Book bookings
   Allow books to be booked, permitting searches of unbooked books.
 
-  Scenario:
+  Scenario: Obtain all unbooked books
     Given the books catalogue is initialized with the following books
       | title             | author    | published           | booked  |
-      | "Wow"             | "Man"     | "02 April 2009"     | false   |
-      | "No way"          | "Person"  | "17 June 1986"      | true    |
-      | "Cucumber"        | "Ruby"    | "17 June 2021"      | false   |
-      | "Creativity 0"    | "Human"   | "09 September 2009" | false   |
-      | "TQS guide"       | "UA"      | "08 March 2022"     | true    |
+      | Wow               | Man       | 02 April 2009       | false   |
+      | No way            | Person    | 17 June 1986        | true    |
+      | Cucumber          | Ruby      | 17 June 2021        | false   |
+      | Creativity 0      | Human     | 09 September 2009   | false   |
+      | TQS guide         | UA        | 08 March 2022       | true    |
     When the customer searches for unbooked books
     Then 3 books should have been found
     And all books should not be booked
