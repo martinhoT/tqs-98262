@@ -12,7 +12,7 @@ public class TitleFilter implements SearchFilter {
 
     @Override
     public boolean test(Book book) {
-        return book.getTitle().equals(title);
+        return book.getTitle().contains(title);
     }
 
 }

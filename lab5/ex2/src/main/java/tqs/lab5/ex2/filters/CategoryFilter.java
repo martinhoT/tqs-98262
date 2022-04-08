@@ -4,17 +4,15 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import tqs.lab5.ex2.Book;
 
-import java.util.List;
-
 @Getter
 @AllArgsConstructor
 public class CategoryFilter implements SearchFilter {
 
-    private final List<String> categories;
+    private final String category;
 
     @Override
     public boolean test(Book book) {
-        return book.getCategories().containsAll(categories);
+        return category.equals("Anything") || book.getCategories().contains(category);
     }
 
 }
