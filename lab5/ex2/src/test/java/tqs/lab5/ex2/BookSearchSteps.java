@@ -83,7 +83,7 @@ public class BookSearchSteps {
 
     @ParameterType("'(\\w+)'(?: and '(\\w+)')?")
     public List<String> categories(String... matches) {
-        return Arrays.stream(matches).collect(Collectors.toList());
+        return Arrays.stream(matches).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     @ParameterType("(?: (of \\w+)| (with the title '[^\\']+')| (published between \\d+ and \\d+)| (written by '[^\\']++'))*")
