@@ -8,7 +8,7 @@ import org.openqa.selenium.support.PageFactory;
 
 import java.util.List;
 
-public class ReservePage {
+public class ReservePage implements WebPage {
 
     private final WebDriver driver;
 
@@ -24,13 +24,14 @@ public class ReservePage {
         PageFactory.initElements(driver, this);
     }
 
-    public String getTextHeader() {
-        return header.getText();
-    }
-
     public PurchasePage clickOnNthReserveChoice(int nth) {
         reserveChoices.get(nth).click();
         return new PurchasePage(driver);
+    }
+
+    @Override
+    public boolean isOpened() {
+        return driver.getTitle().equals("BlazeDemo - reserve");
     }
 
 }

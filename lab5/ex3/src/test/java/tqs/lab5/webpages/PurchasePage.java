@@ -6,12 +6,9 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 
-public class PurchasePage {
+public class PurchasePage implements WebPage {
 
     private final WebDriver driver;
-
-    @FindBy(css="p:nth-child(2)")
-    private WebElement airline;
 
     @FindBy(id="inputName")
     private WebElement name;
@@ -36,10 +33,6 @@ public class PurchasePage {
         this.driver = driver;
 
         PageFactory.initElements(driver, this);
-    }
-
-    public String getTextAirline() {
-        return airline.getText();
     }
 
     public void setName(String input) {
@@ -67,8 +60,6 @@ public class PurchasePage {
         creditCardNumber.sendKeys(input);
     }
 
-    public void clickOnDropdownCardType() { dropdownCardType.click(); }
-
     public void chooseOptionOnDropdownCardType(String option) {
         String xPath = String.format("//option[. = '%s']", option);
         dropdownCardType.findElement(By.xpath(xPath)).click();
@@ -77,6 +68,11 @@ public class PurchasePage {
     public ConfirmPage clickOnButtonPurchaseFlight() {
         buttonPurchaseFlight.click();
         return new ConfirmPage(driver);
+    }
+
+    @Override
+    public boolean isOpened() {
+        return driver.getTitle().equals("BlazeDemo Purchase");
     }
 
 }

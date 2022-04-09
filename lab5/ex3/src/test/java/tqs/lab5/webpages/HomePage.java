@@ -7,7 +7,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 
-public class HomePage {
+public class HomePage implements WebPage {
 
     private final WebDriver driver;
 
@@ -31,9 +31,6 @@ public class HomePage {
         PageFactory.initElements(driver, this);
     }
 
-    public void clickOnDropdownFromPort() { dropdownFromPort.click(); }
-    public void clickOnDropdownToPort() { dropdownToPort.click(); }
-
     public void chooseOptionOnDropdownFromPort(String option) {
         String xPath = String.format("//option[. = '%s']", option);
         dropdownFromPort.findElement(By.xpath(xPath)).click();
@@ -47,6 +44,11 @@ public class HomePage {
     public ReservePage clickOnButtonFindFlights() {
         buttonFindFlights.click();
         return new ReservePage(driver);
+    }
+
+    @Override
+    public boolean isOpened() {
+        return driver.getTitle().equals("BlazeDemo");
     }
 
 }
