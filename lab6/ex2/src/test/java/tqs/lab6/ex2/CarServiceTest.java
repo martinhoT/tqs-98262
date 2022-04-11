@@ -1,4 +1,4 @@
-package tqs.lab3.ex2;
+package tqs.lab6.ex2;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,11 +11,10 @@ import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class CarServiceTest {
+class CarServiceTest {
 
     @Mock
     private CarRepository carRepository;
@@ -24,7 +23,7 @@ public class CarServiceTest {
     private CarService carService;
 
     @Test
-    public void whenGetExistingCar_thenReturnCar() {
+    void whenGetExistingCar_thenReturnCar() {
         Car car = new Car("Rover", "OG");
 
         when(carRepository.findByCarId(0L)).thenReturn(car);
@@ -33,12 +32,12 @@ public class CarServiceTest {
     }
 
     @Test
-    public void whenGetInexistentCar_thenReturnNothing() {
+    void whenGetInexistentCar_thenReturnNothing() {
         assertThat(carService.getCarDetails(0L), equalTo(Optional.empty()));
     }
 
     @Test
-    public void whenListOfCarsSaved_thenListOfCarsPresent() {
+    void whenListOfCarsSaved_thenListOfCarsPresent() {
         List<Car> cars = List.of(
                 new Car("Ferrari", "ABC"),
                 new Car("Porsche", "Bruh"),
@@ -53,7 +52,7 @@ public class CarServiceTest {
     }
 
     @Test
-    public void whenSaveCar_thenReturnSameCar() {
+    void whenSaveCar_thenReturnSameCar() {
         Car car = new Car("Rover", "OG");
 
         when(carRepository.save(car)).thenReturn(car);

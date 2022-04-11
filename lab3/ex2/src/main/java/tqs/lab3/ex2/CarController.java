@@ -17,7 +17,7 @@ public class CarController {
 
     @PostMapping("/api/cars")
     public ResponseEntity<Car> createCar(@RequestBody Car car) {
-        if (car.getCarId() != null && carService.getCarDetails(car.getCarId()).isPresent())
+        if (car.getCarId() != null || carService.getCarDetails(car.getCarId()).isPresent())
             return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
         return ResponseEntity.ok( carService.save(car) );
     }

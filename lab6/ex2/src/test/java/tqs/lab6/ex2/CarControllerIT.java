@@ -1,4 +1,4 @@
-package tqs.lab3.ex2;
+package tqs.lab6.ex2;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,7 +11,6 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.TestPropertySource;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,9 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-//@AutoConfigureTestDatabase
-@TestPropertySource(locations = "application-integrationtest.properties")
-public class CarControllerIT {
+@AutoConfigureTestDatabase
+class CarControllerIT {
 
     @LocalServerPort
     int randomServerPort;
@@ -58,7 +56,7 @@ public class CarControllerIT {
     }
 
     @Test
-    public void whenCarListAdded_thenCarListPersisted() {
+    void whenCarListAdded_thenCarListPersisted() {
         List<Car> carsTest = List.of(
                 new Car("Ferrari", "abcd"),
                 new Car("Porsche", "wot"),
@@ -79,7 +77,7 @@ public class CarControllerIT {
     }
 
     @Test
-    public void whenCarListPersisted_thenCarsReturned() {
+    void whenCarListPersisted_thenCarsReturned() {
         carRepository.saveAll(cars);
 
         // Testing with get by id

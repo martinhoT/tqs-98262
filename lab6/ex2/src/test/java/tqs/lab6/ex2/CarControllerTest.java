@@ -1,4 +1,4 @@
-package tqs.lab3.ex2;
+package tqs.lab6.ex2;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(CarController.class)
-public class CarControllerTest {
+class CarControllerTest {
 
     @Autowired
     private MockMvc mvc;
@@ -35,7 +35,7 @@ public class CarControllerTest {
     private CarService carService;
 
     @Test
-    public void whenListOfCarsAdded_thenListOfCarsPresent() throws Exception {
+    void whenListOfCarsAdded_thenListOfCarsPresent() throws Exception {
         List<Car> cars = List.of(
                 new Car("Volkswagen", "idk"),
                 new Car("Rover", "OG"),
@@ -55,20 +55,19 @@ public class CarControllerTest {
             Car car = cars.get(i);
             car.setCarId((long) i);
             when(carService.getCarDetails((long) i)).thenReturn(Optional.of(car));
-            when(carService.save(car)).thenReturn(car);
         }
         when(carService.getAllCars()).thenReturn(cars);
 
-        List<Car> carsReturned = convertMvcResultIntoCarList(mvcGetAllCars());
+        List<CarDTO> carsReturned = convertMvcResultIntoCarList(mvcGetAllCars());
         for (int i = 0; i < cars.size(); i++) {
             ResultActions mvcResponse = mvcGetCarById((long) i).andExpect(status().isOk());
-            Car carReturnedSingle = convertMvcResultIntoCar(mvcResponse);
+            CarDTO carReturnedSingle = convertMvcResultIntoCar(mvcResponse);
             Car carCreated = cars.get(i);
             System.err.println(carCreated);
             assertEquals(carReturnedSingle.getMaker(), carCreated.getMaker());
             assertEquals(carReturnedSingle.getModel(), carCreated.getModel());
 
-            Car carReturnedList = carsReturned.get(i);
+            CarDTO carReturnedList = carsReturned.get(i);
             assertEquals(carReturnedList.getMaker(), carCreated.getMaker());
             assertEquals(carReturnedList.getModel(), carCreated.getModel());
         }
@@ -79,7 +78,7 @@ public class CarControllerTest {
     }
 
     @Test
-    public void whenQueryInexistentCars_thenReturnNoCars() throws Exception {
+    void whenQueryInexistentCars_thenReturnNoCars() throws Exception {
         // Mocking
         when(carService.getCarDetails(anyLong())).thenReturn(Optional.empty());
         when(carService.getAllCars()).thenReturn(new ArrayList<>());
@@ -91,26 +90,17 @@ public class CarControllerTest {
     }
 
     @Test
-    public void whenCarAdded_thenSameCarReturned() throws Exception {
-        Car car = new Car("Rover", "OG");
+    void whenCarAdded_thenSameCarReturned() throws Exception {
+        Car car = new Car(1L, "Rover", "OG");
 
         // Mocking
-        when(carService.getCarDetails(anyLong())).thenReturn(Optional.empty());
         when(carService.save(ArgumentMatchers.any(Car.class))).thenReturn(car);
 
-        Car carReturned = convertMvcResultIntoCar( mvcCreateCar(car).andExpect(status().isOk()) );
+        CarDTO carReturned = convertMvcResultIntoCar( mvcCreateCar(car).andExpect(status().isOk()) );
 
-        // Can't test with normal 'equals' since Car is an Hibernate entity
+        // Can't test with normal 'equals' since Car is a Hibernate entity
         assertEquals(car.getMaker(), carReturned.getMaker());
         assertEquals(car.getModel(), carReturned.getModel());
-    }
-
-    @Test
-    public void whenCarAddedWithId_thenIgnoreId() throws Exception {
-        Car car = new Car("Rover", "OG");
-        when(carService.getCarDetails(car.getCarId())).thenReturn(Optional.of(car));
-
-        mvcCreateCar(car).andExpect(status().isConflict());
     }
 
     private ResultActions mvcCreateCar(Car car) throws Exception {
@@ -135,17 +125,17 @@ public class CarControllerTest {
         );
     }
 
-    private Car convertMvcResultIntoCar(ResultActions resultActions) throws UnsupportedEncodingException {
+    private CarDTO convertMvcResultIntoCar(ResultActions resultActions) throws UnsupportedEncodingException {
         String response = resultActions.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
-        return JsonUtils.gson.fromJson(response, Car.class);
+        return JsonUtils.gson.fromJson(response, CarDTO.class);
     }
 
     // jfc
-    private List<Car> convertMvcResultIntoCarList(ResultActions resultActions) throws UnsupportedEncodingException {
+    private List<CarDTO> convertMvcResultIntoCarList(ResultActions resultActions) throws UnsupportedEncodingException {
         String response = resultActions.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         JsonElement json = JsonUtils.gson.fromJson(response, JsonElement.class);
-        List<Car> carsResponse = new ArrayList<>();
-        json.getAsJsonArray().forEach((elem) -> carsResponse.add(JsonUtils.gson.fromJson(elem, Car.class)));
+        List<CarDTO> carsResponse = new ArrayList<>();
+        json.getAsJsonArray().forEach((elem) -> carsResponse.add(JsonUtils.gson.fromJson(elem, CarDTO.class)));
         return carsResponse;
     }
 

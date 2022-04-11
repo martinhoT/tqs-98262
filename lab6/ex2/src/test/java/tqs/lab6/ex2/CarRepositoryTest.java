@@ -1,4 +1,4 @@
-package tqs.lab3.ex2;
+package tqs.lab6.ex2;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -6,13 +6,12 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 
 import java.util.List;
-import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
-public class CarRepositoryTest {
+class CarRepositoryTest {
 
     @Autowired
     private TestEntityManager entityManager;
@@ -21,7 +20,7 @@ public class CarRepositoryTest {
     private CarRepository carRepository;
 
     @Test
-    public void whenCarSaved_thenCarPersisted() {
+    void whenCarSaved_thenCarPersisted() {
         Car car = new Car("Rover", "OG");
 
         entityManager.persistAndFlush(car);
@@ -38,13 +37,13 @@ public class CarRepositoryTest {
     }
 
     @Test
-    public void whenCarInexistent_thenReturnNull() {
+    void whenCarInexistent_thenReturnNull() {
         Car obtained = carRepository.findByCarId(0L);
         assertThat(obtained).isNull();
     }
 
     @Test
-    public void whenMultipleCarsAdded_thenAllCarsPersisted() {
+    void whenMultipleCarsAdded_thenAllCarsPersisted() {
         List<Car> cars = List.of(
                 new Car("Volkswagen", "idk"),
                 new Car("Rover", "OG"),
@@ -58,8 +57,7 @@ public class CarRepositoryTest {
         entityManager.flush();
 
         List<Car> carsPersisted = carRepository.findAll();
-        assertThat(carsPersisted).hasSize(cars.size());
-        assertThat(carsPersisted).containsExactlyElementsOf(cars);
+        assertThat(carsPersisted).hasSize(cars.size()).containsExactlyElementsOf(cars);
     }
 
 }
