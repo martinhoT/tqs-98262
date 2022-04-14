@@ -36,7 +36,7 @@ For overall code quality, we chose personalized conditions based on absolute val
 
 - **Blocker issues (>0)**: For the same reason as stated above, but on overall code
 - **Bugs (>0)**: (Effectively equal to Reliability Rating of A)
-- **Code smells (>50)**: Even though this project put functionality over quality, concern should still be put in its readability if other developers were to take over the project (which could be seen as a prototype). Since the project is of a relatively considerable size, and more than one person worked on various aspects of the project, then the likelihood of a bad practice being repeated multiple times is high. Therefore, a high number, such as 50, was chosen to combat this phenomenon
+- **Code smells (>50)**: Even though this project put functionality over quality, concern should still be put in its readability if other developers were to take over it (which could be seen as a prototype). Since the project is of a relatively considerable size, and more than one person worked on various aspects of it, then the likelihood of a bad practice being repeated multiple times is high. Therefore, a high number, such as 50, was chosen to combat this phenomenon
 - **Critical issues (>5)**: Critical issues have less probability of gravely affecting the application in production when compared with blocker issues, but they should also be paid attention to
 - **Vulnerabilities (>0)**: (Effectively equal to Security Rating of A)
 
@@ -56,7 +56,7 @@ For overall code quality, we chose personalized conditions based on absolute val
 
 In order to break the IES Gate (on new code) with code smells, the increment should have a Maintainability Rating worse than B which, at the time of writing, SonarQube considers to be equal to 6 to 10% of Technical Debt Ratio.
 
-The code that was chosen to introduce the code smells was the following: `com.getaroom.app.verifyDocumentType` at `fetcher`. The code with a yellow underline contains suggestions for change from IntelliJ and SonarLint (plugin).
+The code that was chosen to introduce the code smells was the following: `com.getaroom.app.App.verifyDocumentType` at `fetcher`. The code with a yellow underline contains suggestions for change from IntelliJ and SonarLint (plugin).
 
 ### Before
 
