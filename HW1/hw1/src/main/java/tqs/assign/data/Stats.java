@@ -3,7 +3,7 @@ package tqs.assign.data;
 import lombok.Data;
 
 @Data
-public class Stats {
+public class Stats implements ResponseData {
 
     private int confirmed;
     private int newConfirmed;
