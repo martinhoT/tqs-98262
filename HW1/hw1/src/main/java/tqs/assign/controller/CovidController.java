@@ -1,23 +1,31 @@
 package tqs.assign.controller;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 import tqs.assign.api.CovidApi;
 import tqs.assign.data.Stats;
 
-@RestController()
+import java.util.Optional;
+
+@RestController
 @RequestMapping("/api/covid")
 public class CovidController {
 
-    private CovidApi covidApi;
+    private final CovidApi covidApi;
 
-    @GetMapping("/stats")
-    public Stats getStats(@RequestParam(name="country", required=false) String country) {
-        if (country.isEmpty())
-            return covidApi.getGlobalStats();
-        return covidApi.getStats(country);
+    @Autowired
+    public CovidController(CovidApi covidApi) {
+        this.covidApi = covidApi;
+    }
+
+    @GetMapping({ "/stats", "/stats/{countryISO}" })
+    public Stats getStats(
+            @PathVariable(name="countryISO", required=false) Optional<String> countryISO,
+            @RequestParam(name="startPoint", required=false) int startPoint,
+            @RequestParam(name="endPoint", required=false) int endPoint) {
+        if (countryISO.isPresent())
+            return covidApi.getStats(countryISO.get());
+        return covidApi.getGlobalStats();
     }
 
 }

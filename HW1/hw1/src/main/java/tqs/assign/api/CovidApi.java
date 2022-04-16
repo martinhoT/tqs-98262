@@ -36,7 +36,7 @@ public class CovidApi implements Api {
     }
 
     @Override
-    public Stats getStats(String country) {
+    public Stats getStats(String countryISO) {
         // TODO
         return null;
     }

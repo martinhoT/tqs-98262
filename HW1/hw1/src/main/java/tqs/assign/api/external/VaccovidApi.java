@@ -38,11 +38,11 @@ public class VaccovidApi implements Api {
     }
 
     @Override
-    public Stats getStats(String countryIsoCode) {
+    public Stats getStats(String countryISO) {
         return apiClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("api-covid-data/reports/{country-iso-code}")
-                        .build(countryIsoCode))
+                        .build(countryISO))
                 .exchangeToMono(response -> response.bodyToMono(Stats.class))
                 .block();
     }

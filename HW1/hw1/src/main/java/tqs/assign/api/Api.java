@@ -8,6 +8,6 @@ public interface Api {
 
     Stats getGlobalStats();
 
-    Stats getStats(String country);
+    Stats getStats(String countryISO);
 
 }

@@ -1,17 +1,12 @@
 package tqs.assign.data;
 
-import lombok.Data;
-
-@Data
-public class Stats implements ResponseData {
-
-    private int confirmed;
-    private int newConfirmed;
-    private int deaths;
-    private int newDeaths;
-    private int recovered;
-    private int newRecovered;
-    private int active;
-    private double fatalityRate;
-
-}
+public record Stats(
+    int confirmed,
+    int newConfirmed,
+    int deaths,
+    int newDeaths,
+    int recovered,
+    int newRecovered,
+    int active,
+    double fatalityRate
+) implements ResponseData {}
