@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 import tqs.assign.api.external.VaccovidApi;
 import tqs.assign.data.Stats;
 
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -29,15 +31,55 @@ public class CovidApi implements Api {
 
     }
 
-    @Override
-    public Stats getGlobalStats() {
-        // TODO
-        return null;
+    public static class CovidApiQuery implements ApiQuery {
+
+        @Override
+        public ApiQuery atCountry(String countryISO) {
+            // TODO
+            return this;
+        }
+
+        @Override
+        public ApiQuery after(LocalDateTime after) {
+            // TODO
+            return this;
+        }
+
+        @Override
+        public ApiQuery before(LocalDateTime before) {
+            // TODO
+            return this;
+        }
+
+        @Override
+        public ApiQuery atDate(LocalDateTime date) {
+            // TODO
+            return this;
+        }
+
+        @Override
+        public Stats fetch() {
+            // TODO
+            return null;
+        }
     }
 
     @Override
-    public Stats getStats(String countryISO) {
+    public Stats getGlobalStats() {
         // TODO
-        return null;
+        return new CovidApiQuery().fetch();
+    }
+
+    @Override
+    public Stats getCountryStats(String countryISO) {
+        // TODO
+        return new CovidApiQuery()
+                .atCountry(countryISO)
+                .fetch();
+    }
+
+    @Override
+    public ApiQuery getStats() {
+        return new CovidApiQuery();
     }
 }

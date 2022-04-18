@@ -2,12 +2,12 @@ package tqs.assign.api;
 
 import tqs.assign.data.Stats;
 
-import java.io.IOException;
-
 public interface Api {
 
+    // Convenience methods
     Stats getGlobalStats();
+    Stats getCountryStats(String countryISO);
 
-    Stats getStats(String countryISO);
+    ApiQuery getStats();
 
 }

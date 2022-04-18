@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import tqs.assign.api.Api;
+import tqs.assign.api.ApiQuery;
 import tqs.assign.data.Stats;
 
 @Component
@@ -38,13 +39,18 @@ public class VaccovidApi implements Api {
     }
 
     @Override
-    public Stats getStats(String countryISO) {
+    public Stats getCountryStats(String countryISO) {
         return apiClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("api-covid-data/reports/{country-iso-code}")
                         .build(countryISO))
                 .exchangeToMono(response -> response.bodyToMono(Stats.class))
                 .block();
+    }
+
+    @Override
+    public ApiQuery getStats() {
+        return null;
     }
 
 }

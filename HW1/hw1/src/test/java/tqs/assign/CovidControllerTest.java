@@ -2,26 +2,32 @@ package tqs.assign;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
-import org.mockito.internal.hamcrest.HamcrestArgumentMatcher;
+import org.mockito.Answers;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import tqs.assign.api.Api;
+import tqs.assign.api.ApiQuery;
 import tqs.assign.api.CovidApi;
 import tqs.assign.controller.CovidController;
 import tqs.assign.data.Stats;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.MonthDay;
+import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static tqs.assign.JsonUtils.gson;
+import static tqs.assign.api.CovidApi.CovidApiQuery;
 
 @WebMvcTest(CovidController.class)
 class CovidControllerTest {
@@ -31,6 +37,8 @@ class CovidControllerTest {
 
     @MockBean
     private CovidApi covidApi;
+    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
+    private CovidApiQuery covidApiQuery;
 
 
 
@@ -39,6 +47,8 @@ class CovidControllerTest {
 
     @BeforeEach
     void setUp() {
+        when(covidApi.getStats()).thenReturn(covidApiQuery);
+
         Map<String, Stats> countryStats = Map.of(
                 "PT", new Stats(
                         3719485,
@@ -93,7 +103,7 @@ class CovidControllerTest {
         Set<String> countryISOs = countryStats.keySet();
 
         for (String countryISO : countryISOs)
-            when(covidApi.getStats(countryISO)).thenReturn(countryStats.get(countryISO));
+            when(covidApi.getCountryStats(countryISO)).thenReturn(countryStats.get(countryISO));
 
         for (String countryISO : countryISOs) {
             MvcResult result = mvc.perform(get("{/api/covid/stats/{countryISO}")
@@ -107,7 +117,14 @@ class CovidControllerTest {
         }
     }
 
-    // TODO: test for query params
+    @Test
+    void whenGetStatsAfterDate_thenReturnAfterDateStats() throws Exception {
+        LocalDateTime date = LocalDateTime.of(2022, 1, 1, 12, 30);
+
+        when(covidApiQuery.after(date).fetch()).thenReturn(globalStats);
+
+        assertEquals(globalStats, covidApi.getStats().after(date).fetch());
+    }
 
     // TODO: test for bad input
 

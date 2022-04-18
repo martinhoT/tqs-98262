@@ -5,6 +5,8 @@ import org.springframework.web.bind.annotation.*;
 import tqs.assign.api.CovidApi;
 import tqs.assign.data.Stats;
 
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Optional;
 
 @RestController
@@ -21,10 +23,11 @@ public class CovidController {
     @GetMapping({ "/stats", "/stats/{countryISO}" })
     public Stats getStats(
             @PathVariable(name="countryISO", required=false) Optional<String> countryISO,
-            @RequestParam(name="startPoint", required=false) int startPoint,
-            @RequestParam(name="endPoint", required=false) int endPoint) {
+            @RequestParam(name="date", required=false) LocalDateTime date,
+            @RequestParam(name="after", required=false) LocalDateTime after,
+            @RequestParam(name="before", required=false) LocalDateTime before) {
         if (countryISO.isPresent())
-            return covidApi.getStats(countryISO.get());
+            return covidApi.getCountryStats(countryISO.get());
         return covidApi.getGlobalStats();
     }
 
