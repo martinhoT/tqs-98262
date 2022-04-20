@@ -7,14 +7,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
+import tqs.assign.api.ApiQuery;
 import tqs.assign.api.CovidCache;
 import tqs.assign.data.CacheStats;
 import tqs.assign.data.ResponseData;
-import tqs.assign.data.Stats;
 import tqs.assign.exceptions.NoCachedElementException;
 
-import java.util.Collections;
-import java.util.List;
+import java.time.LocalDate;
 import java.util.Map;
 
 import static org.awaitility.Awaitility.await;
@@ -27,32 +26,26 @@ class CovidCacheTest {
     private CovidCache covidCache;
 
     // Provided for convenience
-    private final ResponseData testResponse = new Stats(
-            1, 2, 3, 4, 5, 6, 7, 0.1
-    );
-    private final String testRequestMethod = "getStats";
-    private final List<String> testRequestArgs = Collections.emptyList();
+    private final ApiQuery testQuery = ApiQuery.builder().build();
+    private final ResponseData testResponse = TestUtils.randomStats();
 
-    private final List<ResponseData> testResponses = List.of(
-            testResponse,
-            new Stats(2, 3, 4, 5, 6, 7, 8, 0.5),
-            new Stats(10, 10, 10,0, 25, 5, 1, 0)
-    );
-    private final Map<String, List<String>> testRequests = Map.of(
-            testRequestMethod, testRequestArgs,
-            "getStatsAtCountry", List.of("arg"),
-            "getStatsAfter", List.of("a", "b"),
-            "getStatsAtCountryAfter", List.of("a")
+    private final Map<ApiQuery, ResponseData> queryResponses = Map.of(
+        testQuery, testResponse,
+        ApiQuery.builder().atCountry("USA").build(), TestUtils.randomStats(),
+        ApiQuery.builder().after(LocalDate.now()).build(), TestUtils.randomStats(),
+        ApiQuery.builder().atCountry("SUS").after(LocalDate.of(2012, 7, 20)).build(), TestUtils.randomStats()
     );
 
 
 
     @Test
     void whenResponseStored_thenResponseSaved() {
-        covidCache.store(testResponse, testRequestMethod, testRequestArgs);
+        queryResponses.forEach((query, response) -> {
+            covidCache.store(query, response);
 
-        assertEquals(testResponse, covidCache.get(testRequestMethod, testRequestArgs));
-        assertFalse(covidCache.stale(testRequestMethod, testRequestArgs));
+            assertEquals(testResponse, covidCache.get(query));
+            assertFalse(covidCache.stale(query));
+        });
     }
 
     @Test
@@ -60,37 +53,36 @@ class CovidCacheTest {
         Duration ttl = Duration.FIVE_SECONDS;
 
         ReflectionTestUtils.setField(covidCache, "ttl", ttl.getValue());
-        covidCache.store(testResponse, testRequestMethod, testRequestArgs);
-        assertFalse(covidCache.stale(testRequestMethod, testRequestArgs));
+        covidCache.store(testQuery, testResponse);
+        assertFalse(covidCache.stale(testQuery));
 
         await().atLeast(ttl).and().atMost(ttl.plus(1L)).untilAsserted(
-                () -> assertTrue(covidCache.stale(testRequestMethod, testRequestArgs)));
+                () -> assertTrue(covidCache.stale(testQuery)));
     }
 
     @Test
     void whenGetNonExistentResponse_thenThrowNoCachedElementException() {
-        assertThrows(NoCachedElementException.class, () -> covidCache.get(testRequestMethod, testRequestArgs));
+        assertThrows(NoCachedElementException.class, () -> covidCache.get(testQuery));
     }
 
     @Test
     void whenResponseIsNonExistent_thenItIsStale() {
-        assertTrue(covidCache.stale(testRequestMethod, testRequestArgs));
+        assertTrue(covidCache.stale(testQuery));
     }
 
     @Test
     @DisplayName("Check that the cache presents the correct stats. The count of hits and misses must be obtained from checking entry staleness")
     void whenGetCacheStats_thenCacheStatsObtained() {
-        for (Map.Entry<String, List<String>> testRequest : testRequests.entrySet()) {
-            covidCache.stale(testRequest.getKey(), testRequest.getValue());
-            covidCache.store(testResponse, testRequest.getKey(), testRequest.getValue());
-        }
+        queryResponses.forEach((query, response) -> {
+            covidCache.stale(query);
+            covidCache.store(query, response);
+        });
 
-        Long ttl = (Long) ReflectionTestUtils.getField(covidCache, "ttl");
-        assertNotNull(ttl);
+        long ttl = covidCache.getTtl();
 
-        covidCache.stale(testRequestMethod, testRequestArgs);
+        covidCache.stale(testQuery);
 
-        assertEquals(new CacheStats(1, testRequests.size(), testRequests.size()+1, ttl), covidCache.statsSnapshot());
+        assertEquals(new CacheStats(1, queryResponses.size(), queryResponses.size()+1, ttl), covidCache.statsSnapshot());
     }
 
 }

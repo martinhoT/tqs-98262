@@ -3,8 +3,6 @@ package tqs.assign;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Answers;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -29,7 +27,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static tqs.assign.JsonUtils.gson;
+import static tqs.assign.TestUtils.gson;
 
 @WebMvcTest(CovidController.class)
 class CovidControllerTest {
@@ -241,6 +239,8 @@ class CovidControllerTest {
                 .andExpect(result -> assertTrue(result.getResolvedException() instanceof UnavailableApiException))
                 .andExpect(jsonPath("$.message").value(msg));
     }
+
+
 
     private void assertCorrectCountryAndGlobalStatsForRequest(MultiValueMap<String, String> queryParams) throws Exception {
         MvcResult result = mvc.perform(get("/api/covid/stats")

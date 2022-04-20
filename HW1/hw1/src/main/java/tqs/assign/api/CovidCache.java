@@ -1,31 +1,28 @@
 package tqs.assign.api;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import tqs.assign.data.CacheStats;
 import tqs.assign.data.ResponseData;
 
-import java.util.List;
-
 @Component
 public class CovidCache {
 
     @Value("covid-cache.ttl")
+    @Getter
     private long ttl;
 
-    public void store(ResponseData response, String requestMethod, List<String> requestArgs) {
+    public void store(ApiQuery apiQuery, ResponseData responseData) {
         // TODO
     }
 
-    public ResponseData get(String requestMethod, List<String> requestArgs) {
+    public ResponseData get(ApiQuery apiQuery) {
         // TODO
         return null;
     }
 
-    public boolean stale(String requestMethod, List<String> requestArgs) {
+    public boolean stale(ApiQuery apiQuery) {
         // TODO
         return false;
     }
@@ -33,13 +30,6 @@ public class CovidCache {
     public CacheStats statsSnapshot() {
         // TODO
         return null;
-    }
-
-    @AllArgsConstructor
-    @EqualsAndHashCode
-    public static class CovidCacheKey {
-        private final String requestMethod;
-        private final List<String> requestArgs;
     }
 
 }

@@ -1,14 +1,12 @@
 package tqs.assign;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.util.ReflectionTestUtils;
-import tqs.assign.api.Api;
 import tqs.assign.api.ApiQuery;
 import tqs.assign.api.CovidApi;
 import tqs.assign.api.CovidCache;
@@ -18,8 +16,10 @@ import tqs.assign.data.ResponseData;
 import tqs.assign.data.Stats;
 import tqs.assign.exceptions.UnavailableExternalApiException;
 
-import java.util.Collections;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -35,40 +35,35 @@ class CovidApiTest {
     @MockBean
     private OpenCovidApi openCovidApi;
 
-    @InjectMocks
+    @Autowired
     private CovidApi covidApi;
 
-    private final String globalRequestMethod = "getStats";
-    private final String countryRequestMethod = "getStatsAtCountry";
-    private final List<String> globalRequestArgs = Collections.emptyList();
-    private final List<String> countryRequestArgs = List.of("PT");
-    private final ResponseData globalResponse = new Stats(1, 2, 3, 4, 5, 6, 7, 0.01);
-    private final ResponseData countryResponse = new Stats(9, 8, 7, 6, 5, 4, 3, 0);
+    private final Map<ApiQuery, ResponseData> queryResponses = Map.of(
+            ApiQuery.builder().build(), TestUtils.randomStats(),
+            ApiQuery.builder().atCountry("PT").build(), TestUtils.randomStats()
+    );
 
 
 
     @BeforeEach
-    @SuppressWarnings("unchecked")
     void setUpEverything() {
-        // Check that both API lists have the same order
-        List<Api> supportedApis = (List<Api>) ReflectionTestUtils.getField(covidApi, "supportedApis");
-        assertEquals(List.of(
+        ReflectionTestUtils.setField(covidApi, "supportedApis", List.of(
                 vaccovidApi,
                 openCovidApi
-        ), supportedApis, "The list of supported APIs is out of order in either the tests or the CovidApi class");
+        ));
     }
 
     @Test
     void whenRequestCached_thenReturnCachedResponse() {
-        when(covidCache.stale(globalRequestMethod, globalRequestArgs)).thenReturn(false);
-        when(covidCache.stale(countryRequestMethod, countryRequestArgs)).thenReturn(false);
-        when(covidCache.get(globalRequestMethod, globalRequestArgs)).thenReturn(globalResponse);
-        when(covidCache.get(countryRequestMethod, countryRequestArgs)).thenReturn(countryResponse);
+        for (Map.Entry<ApiQuery, ResponseData> queryResponse : queryResponses.entrySet()) {
+            ApiQuery query = queryResponse.getKey();
+            ResponseData response = queryResponse.getValue();
 
-        assertEquals(globalResponse, covidApi.getStats(ApiQuery.builder().build()));
-        assertEquals(globalResponse, covidApi.getGlobalStats());
-        assertEquals(countryResponse, covidApi.getStats(ApiQuery.builder().atCountry(countryRequestArgs.get(0)).build()));
-        assertEquals(countryResponse, covidApi.getCountryStats(countryRequestArgs.get(0)));
+            when(covidCache.stale(query)).thenReturn(false);
+            when(covidCache.get(query)).thenReturn(response);
+
+            assertEquals(response, covidApi.getStats(query));
+        }
     }
 
     @Test
@@ -80,9 +75,37 @@ class CovidApiTest {
 
         covidApi.getGlobalStats();
 
-        verify(covidCache, times(0)).get(any(), any());
+        verify(covidCache, times(0)).get(any());
         verify(vaccovidApi, times(1)).getGlobalStats();
         verify(vaccovidApi, times(1)).getStats(any());
+    }
+
+    @Test
+    void whenRequestMade_thenResponseCached() {
+        ApiQuery apiQuery = ApiQuery.builder()
+                .atCountry("PT")
+                .atDate(LocalDate.now())
+                .build();
+        Stats apiResponse = TestUtils.randomStats();
+
+        when(vaccovidApi.getStats(apiQuery)).thenReturn(apiResponse);
+        when(covidCache.stale(apiQuery)).thenReturn(true);
+
+        covidApi.getStats(apiQuery);
+        verify(vaccovidApi, times(1)).getStats(apiQuery);
+        verify(covidCache, times(1)).store(apiQuery, apiResponse);
+
+        when(covidCache.stale(apiQuery)).thenReturn(false);
+        when(covidCache.get(apiQuery)).thenReturn(apiResponse);
+
+        int numberOfExtraRequests = 5;
+        IntStream.range(0, numberOfExtraRequests).forEach((i) -> covidApi.getStats(apiQuery));
+
+        covidApi.getStats(apiQuery);
+        verify(vaccovidApi, times(1)).getStats(apiQuery);
+        verify(covidCache, times(1)).store(apiQuery, apiResponse);
+        verify(covidCache, times(numberOfExtraRequests)).get(apiQuery);
+        verify(covidCache, times(numberOfExtraRequests + 1)).get(apiQuery);
     }
 
     @Test
@@ -115,8 +138,10 @@ class CovidApiTest {
         assertThrows(UnavailableExternalApiException.class, () -> covidApi.getGlobalStats());
     }
 
+
+
     private void disableCovidCache() {
-        when(covidCache.stale(any(), any())).thenReturn(true);
+        when(covidCache.stale(any())).thenReturn(true);
     }
 
 }
