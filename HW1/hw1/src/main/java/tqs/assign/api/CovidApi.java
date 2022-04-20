@@ -5,8 +5,7 @@ import org.springframework.stereotype.Service;
 import tqs.assign.api.external.VaccovidApi;
 import tqs.assign.data.Stats;
 
-import java.time.LocalDateTime;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -40,19 +39,19 @@ public class CovidApi implements Api {
         }
 
         @Override
-        public ApiQuery after(LocalDateTime after) {
+        public ApiQuery after(LocalDate after) {
             // TODO
             return this;
         }
 
         @Override
-        public ApiQuery before(LocalDateTime before) {
+        public ApiQuery before(LocalDate before) {
             // TODO
             return this;
         }
 
         @Override
-        public ApiQuery atDate(LocalDateTime date) {
+        public ApiQuery atDate(LocalDate date) {
             // TODO
             return this;
         }

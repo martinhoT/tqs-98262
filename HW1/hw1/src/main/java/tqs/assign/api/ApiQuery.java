@@ -2,17 +2,17 @@ package tqs.assign.api;
 
 import tqs.assign.data.Stats;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 public interface ApiQuery {
 
     ApiQuery atCountry(String countryISO);
 
-    ApiQuery after(LocalDateTime after);
+    ApiQuery after(LocalDate after);
 
-    ApiQuery before(LocalDateTime before);
+    ApiQuery before(LocalDate before);
 
-    ApiQuery atDate(LocalDateTime date);
+    ApiQuery atDate(LocalDate date);
 
     Stats fetch();
 
