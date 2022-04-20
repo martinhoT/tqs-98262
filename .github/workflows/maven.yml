@@ -27,3 +27,5 @@ jobs:
         cache: maven
     - name: Build with Maven
       run: mvn -B verify --file pom.xml
+    - name: Run Codacy Analysis CLI
+      uses: codacy/codacy-analysis-cli-action@master
