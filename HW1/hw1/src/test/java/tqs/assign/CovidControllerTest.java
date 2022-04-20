@@ -12,22 +12,24 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.MultiValueMapAdapter;
+import tqs.assign.api.ApiQuery;
 import tqs.assign.api.CovidApi;
 import tqs.assign.controller.CovidController;
 import tqs.assign.data.Stats;
+import tqs.assign.exceptions.UnavailableApiException;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static tqs.assign.JsonUtils.gson;
-import static tqs.assign.api.CovidApi.CovidApiQuery;
 
 @WebMvcTest(CovidController.class)
 class CovidControllerTest {
@@ -37,8 +39,6 @@ class CovidControllerTest {
 
     @MockBean
     private CovidApi covidApi;
-    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
-    private CovidApiQuery covidApiQuery;
 
 
 
@@ -47,8 +47,6 @@ class CovidControllerTest {
 
     @BeforeEach
     void setUp() {
-        when(covidApi.getStats()).thenReturn(covidApiQuery);
-
         countryStats = Map.of(
                 "PT", new Stats(
                         3719485,
@@ -122,9 +120,10 @@ class CovidControllerTest {
         Set<String> countryISOs = countryStats.keySet();
         LocalDate date = LocalDate.of(2022, 1, 1);
 
-        when(covidApiQuery.after(date).fetch()).thenReturn(globalStats);
+        when(covidApi.getStats(ApiQuery.builder().after(date).build())).thenReturn(globalStats);
         for (String countryISO : countryISOs)
-            when(covidApiQuery.atCountry(countryISO).after(date).fetch()).thenReturn(countryStats.get(countryISO));
+            when(covidApi.getStats(ApiQuery.builder().atCountry(countryISO).after(date).build()))
+                    .thenReturn(countryStats.get(countryISO));
 
         assertCorrectCountryAndGlobalStatsForRequest(new MultiValueMapAdapter<>(Map.of(
                 "after", List.of(date.toString())
@@ -136,9 +135,10 @@ class CovidControllerTest {
         Set<String> countryISOs = countryStats.keySet();
         LocalDate date = LocalDate.of(2022, 1, 1);
 
-        when(covidApiQuery.before(date).fetch()).thenReturn(globalStats);
+        when(covidApi.getStats(ApiQuery.builder().before(date).build())).thenReturn(globalStats);
         for (String countryISO : countryISOs)
-            when(covidApiQuery.atCountry(countryISO).before(date).fetch()).thenReturn(countryStats.get(countryISO));
+            when(covidApi.getStats(ApiQuery.builder().atCountry(countryISO).before(date).build()))
+                    .thenReturn(countryStats.get(countryISO));
 
         assertCorrectCountryAndGlobalStatsForRequest(new MultiValueMapAdapter<>(Map.of(
                 "before", List.of(date.toString())
@@ -150,9 +150,9 @@ class CovidControllerTest {
         Set<String> countryISOs = countryStats.keySet();
         LocalDate date = LocalDate.of(2022, 1, 1);
 
-        when(covidApiQuery.atDate(date).fetch()).thenReturn(globalStats);
+        when(covidApi.getStats(ApiQuery.builder().atDate(date).build())).thenReturn(globalStats);
         for (String countryISO : countryISOs)
-            when(covidApiQuery.atCountry(countryISO).atDate(date).fetch()).thenReturn(countryStats.get(countryISO));
+            when(covidApi.getStats(ApiQuery.builder().atCountry(countryISO).atDate(date).build())).thenReturn(countryStats.get(countryISO));
 
         assertCorrectCountryAndGlobalStatsForRequest(new MultiValueMapAdapter<>(Map.of(
                 "date", List.of(date.toString())
@@ -167,10 +167,20 @@ class CovidControllerTest {
         LocalDate dateBefore = LocalDate.of(2022, 2, 2);
         LocalDate dateAfter = LocalDate.of(2021, 1, 1);
 
-        when(covidApiQuery.atDate(dateAt).before(dateBefore).after(dateAfter).fetch()).thenReturn(globalStats);
+        when(covidApi.getStats(ApiQuery.builder()
+                .atDate(dateAt)
+                .before(dateBefore)
+                .after(dateAfter)
+                .build()))
+            .thenReturn(globalStats);
         for (String countryISO : countryISOs)
-            when(covidApiQuery.atCountry(countryISO).atDate(dateAt).before(dateBefore).after(dateAfter).fetch())
-                    .thenReturn(countryStats.get(countryISO));
+            when(covidApi.getStats(ApiQuery.builder()
+                    .atCountry(countryISO)
+                    .atDate(dateAt)
+                    .before(dateBefore)
+                    .after(dateAfter)
+                    .build()))
+                .thenReturn(countryStats.get(countryISO));
 
         assertCorrectCountryAndGlobalStatsForRequest(new MultiValueMapAdapter<>(Map.of(
                 "date", List.of(dateAt.toString()),
@@ -218,6 +228,18 @@ class CovidControllerTest {
                     .param("country", countryISOCode))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value(baseMsg.formatted(countryISOCode)));
+    }
+
+    @Test
+    void whenExternalAPIsUnreachable_thenThrowUnavailableApiException() throws Exception {
+        when(covidApi.getStats(any())).thenThrow(new UnavailableApiException());
+
+        String msg = "The covid API is unavailable, since communication can't be established with the external data providers";
+
+        mvc.perform(get("/api/covid/stats"))
+                .andExpect(status().isGatewayTimeout())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof UnavailableApiException))
+                .andExpect(jsonPath("$.message").value(msg));
     }
 
     private void assertCorrectCountryAndGlobalStatsForRequest(MultiValueMap<String, String> queryParams) throws Exception {

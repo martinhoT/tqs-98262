@@ -2,14 +2,14 @@ package tqs.assign.api;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import tqs.assign.api.external.OpenCovidApi;
 import tqs.assign.api.external.VaccovidApi;
 import tqs.assign.data.Stats;
 
-import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Proxy bean that alternates between 3 external APIs based on availability.
+ * Proxy bean that alternates between 2 external APIs based on availability.
  */
 @Service
 public class CovidApi implements Api {
@@ -20,65 +20,33 @@ public class CovidApi implements Api {
 
     @Autowired
     public CovidApi(CovidCache covidCache,
-            VaccovidApi vaccovidApi) {
+                    VaccovidApi vaccovidApi,
+                    OpenCovidApi openCovidApi) {
 
         supportedApis = List.of(
-                vaccovidApi
+                vaccovidApi,
+                openCovidApi
         );
 
         this.covidCache = covidCache;
 
     }
 
-    public static class CovidApiQuery implements ApiQuery {
-
-        @Override
-        public ApiQuery atCountry(String countryISO) {
-            // TODO
-            return this;
-        }
-
-        @Override
-        public ApiQuery after(LocalDate after) {
-            // TODO
-            return this;
-        }
-
-        @Override
-        public ApiQuery before(LocalDate before) {
-            // TODO
-            return this;
-        }
-
-        @Override
-        public ApiQuery atDate(LocalDate date) {
-            // TODO
-            return this;
-        }
-
-        @Override
-        public Stats fetch() {
-            // TODO
-            return null;
-        }
-    }
-
     @Override
     public Stats getGlobalStats() {
-        // TODO
-        return new CovidApiQuery().fetch();
+        return getStats(ApiQuery.builder().build());
     }
 
     @Override
     public Stats getCountryStats(String countryISO) {
-        // TODO
-        return new CovidApiQuery()
+        return getStats(ApiQuery.builder()
                 .atCountry(countryISO)
-                .fetch();
+                .build());
     }
 
     @Override
-    public ApiQuery getStats() {
-        return new CovidApiQuery();
+    public Stats getStats(ApiQuery query) {
+        // TODO
+        return null;
     }
 }

@@ -1,19 +1,34 @@
 package tqs.assign.api;
 
-import tqs.assign.data.Stats;
+import lombok.Builder;
 
 import java.time.LocalDate;
 
-public interface ApiQuery {
+public class ApiQuery {
 
-    ApiQuery atCountry(String countryISO);
+    private final String atCountry;
+    private final LocalDate after;
+    private final LocalDate before;
+    private final LocalDate atDate;
 
-    ApiQuery after(LocalDate after);
+    @Builder
+    public ApiQuery(String atCountry, LocalDate after, LocalDate before, LocalDate atDate) {
+        this.atCountry = atCountry;
+        this.after = after;
+        this.before = before;
+        this.atDate = atDate;
+    }
 
-    ApiQuery before(LocalDate before);
+    private String effectiveQueryStr;
 
-    ApiQuery atDate(LocalDate date);
-
-    Stats fetch();
+    public String effectiveQuery() {
+        if (effectiveQueryStr == null)
+            effectiveQueryStr = "getStats" +
+                    (atCountry != null ? "AtCountry" : "") +
+                    (atDate != null ? "AtDate" : "") +
+                    (after != null ? "After" : "") +
+                    (before != null ? "Before" : "");
+        return effectiveQueryStr;
+    }
 
 }
