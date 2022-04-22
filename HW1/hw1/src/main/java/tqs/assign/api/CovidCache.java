@@ -27,10 +27,9 @@ public class CovidCache {
 
 
 
-    public ResponseData store(ApiQuery apiQuery, ResponseData responseData) {
+    public void store(ApiQuery apiQuery, ResponseData responseData) {
         cache.put(apiQuery, responseData);
         timestamps.put(apiQuery, Instant.now().getEpochSecond());
-        return responseData;
     }
 
     public ResponseData get(ApiQuery apiQuery) {
@@ -40,15 +39,14 @@ public class CovidCache {
     }
 
     public boolean stale(ApiQuery apiQuery) {
-        boolean stale = !timestamps.containsKey(apiQuery) || Instant.now().getEpochSecond() - timestamps.get(apiQuery) > ttl;
-        if (stale) misses++;
-        else hits++;
-        return stale;
+        return !timestamps.containsKey(apiQuery) || Instant.now().getEpochSecond() - timestamps.get(apiQuery) > ttl;
     }
 
     /**
      * Convenience method that uses the 3 main methods.
      * This allows for obtaining a cached result if it's present, or to populate it if it's not.
+     * <br>
+     * This is the method that should be called for normal cache use.
      *
      * @param apiQuery the API query
      * @param responseDataSupplier the supplier that will produce the updated response in case the one for the specified
@@ -56,9 +54,14 @@ public class CovidCache {
      * @return the response that is cached for this API query
      */
     public ResponseData getOrStore(ApiQuery apiQuery, Supplier<ResponseData> responseDataSupplier) {
-        return stale(apiQuery)
-                ? store(apiQuery, responseDataSupplier.get())
-                : get(apiQuery);
+        if (stale(apiQuery)) {
+            misses++;
+            ResponseData response = responseDataSupplier.get();
+            store(apiQuery, response);
+            return response;
+        }
+        hits++;
+        return get(apiQuery);
     }
 
     public CacheStats statsSnapshot() {

@@ -1,5 +1,6 @@
 package tqs.assign.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -10,12 +11,14 @@ import tqs.assign.data.CacheStats;
 @RequestMapping("/api/cache")
 public class CovidCacheController {
 
-    private CovidApi covidApi;
+    private final CovidApi covidApi;
+
+    @Autowired
+    public CovidCacheController(CovidApi covidApi) { this.covidApi = covidApi; }
 
     @GetMapping("/stats")
     public CacheStats getStats() {
-        // TODO
-        return null;
+        return covidApi.getCacheStats();
     }
 
 }

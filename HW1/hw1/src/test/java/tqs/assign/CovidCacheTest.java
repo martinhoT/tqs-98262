@@ -17,6 +17,8 @@ import tqs.assign.exceptions.NoCachedElementException;
 
 import java.time.LocalDate;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.*;
@@ -42,6 +44,7 @@ class CovidCacheTest {
     @BeforeEach
     void setUp() {
         covidCache = new CovidCache();
+        ReflectionTestUtils.setField(covidCache, "ttl", 60L);
     }
 
 
@@ -95,11 +98,11 @@ class CovidCacheTest {
 
         assertEquals(new CacheStats(1, queryResponses.size(), queryResponses.size(), ttl), covidCache.statsSnapshot());
 
-        ttl = 0L;
-        ReflectionTestUtils.setField(covidCache, "ttl", ttl);
+        final long noTtl = 0L;
+        ReflectionTestUtils.setField(covidCache, "ttl", noTtl);
+        await().atMost(noTtl + 2, TimeUnit.SECONDS).untilAsserted(() -> assertTrue(covidCache.stale(testQuery)));
         covidCache.getOrStore(testQuery, () -> testResponse);
-        assertEquals(new CacheStats(1, queryResponses.size()+1, queryResponses.size(), ttl), covidCache.statsSnapshot());
-
+        assertEquals(new CacheStats(1, queryResponses.size()+1, queryResponses.size(), noTtl), covidCache.statsSnapshot());
     }
 
 }

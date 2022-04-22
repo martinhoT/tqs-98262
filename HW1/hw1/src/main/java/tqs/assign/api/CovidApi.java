@@ -4,7 +4,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tqs.assign.api.external.OpenCovidApi;
 import tqs.assign.api.external.VaccovidApi;
+import tqs.assign.data.CacheStats;
 import tqs.assign.data.Stats;
+import tqs.assign.exceptions.UnavailableApiException;
+import tqs.assign.exceptions.UnavailableExternalApiException;
 
 import java.util.List;
 
@@ -15,6 +18,7 @@ import java.util.List;
 public class CovidApi implements Api {
 
     private final List<Api> supportedApis;
+    private int chosenApiIdx;
 
     private final CovidCache covidCache;
 
@@ -27,6 +31,7 @@ public class CovidApi implements Api {
                 vaccovidApi,
                 openCovidApi
         );
+        chosenApiIdx = 0;
 
         this.covidCache = covidCache;
 
@@ -46,7 +51,25 @@ public class CovidApi implements Api {
 
     @Override
     public Stats getStats(ApiQuery query) {
-        // TODO
-        return null;
+        Stats response = null;
+        int initialApiIdx = chosenApiIdx;
+        do {
+            Api chosenApi = supportedApis.get(chosenApiIdx);
+            try {
+                response = chosenApi.getStats(query);
+            } catch (UnavailableExternalApiException ex) {
+                chosenApiIdx = (++chosenApiIdx) % supportedApis.size();
+            }
+        } while (response == null && initialApiIdx != chosenApiIdx);
+
+        if (response == null)
+            throw new UnavailableApiException();
+
+        return response;
     }
+
+    public CacheStats getCacheStats() {
+        return covidCache.statsSnapshot();
+    }
+
 }
