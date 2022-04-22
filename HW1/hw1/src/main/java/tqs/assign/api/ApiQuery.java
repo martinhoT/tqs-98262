@@ -1,9 +1,13 @@
 package tqs.assign.api;
 
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 import java.time.LocalDate;
 
+@Getter
+@EqualsAndHashCode
 public class ApiQuery {
 
     private final String atCountry;

@@ -102,8 +102,7 @@ class CovidControllerTest {
             when(covidApi.getCountryStats(countryISO)).thenReturn(countryStats.get(countryISO));
 
         for (String countryISO : countryISOs) {
-            MvcResult result = mvc.perform(get("{/api/covid/stats/{country}")
-                            .param("country", countryISO))
+            MvcResult result = mvc.perform(get("/api/covid/stats/{country}", countryISO))
                     .andExpect(status().isOk())
                     .andReturn();
 
@@ -209,10 +208,9 @@ class CovidControllerTest {
         List<String> countryISOCodes = List.of("Portugal", "876", "United Kingdom", "O_O");
 
         for (String countryISOCode : countryISOCodes) {
-            mvc.perform(get("/api/covid/stats/{country}")
-                    .param("country", countryISOCode))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.message").value(baseMsg.formatted(countryISOCode)));
+            mvc.perform(get("/api/covid/stats/{country}", countryISOCode))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(baseMsg.formatted(countryISOCode)));
         }
     }
 
@@ -222,8 +220,7 @@ class CovidControllerTest {
         List<String> countryISOCodes = List.of("ABC", "ZZZ", "WOAH");
 
         for (String countryISOCode : countryISOCodes)
-            mvc.perform(get("/api/covid/stats/{country}")
-                    .param("country", countryISOCode))
+            mvc.perform(get("/api/covid/stats/{country}", countryISOCode))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value(baseMsg.formatted(countryISOCode)));
     }

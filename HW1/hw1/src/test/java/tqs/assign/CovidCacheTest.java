@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.util.ReflectionTestUtils;
 import tqs.assign.api.ApiQuery;
 import tqs.assign.api.CovidCache;
@@ -19,6 +20,7 @@ import java.util.Map;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.*;
 
+@SpringBootTest
 @ExtendWith(MockitoExtension.class)
 class CovidCacheTest {
 
@@ -74,15 +76,14 @@ class CovidCacheTest {
     @DisplayName("Check that the cache presents the correct stats. The count of hits and misses must be obtained from checking entry staleness")
     void whenGetCacheStats_thenCacheStatsObtained() {
         queryResponses.forEach((query, response) -> {
-            covidCache.stale(query);
-            covidCache.store(query, response);
+            covidCache.getOrStore(query, () -> response);
         });
 
         long ttl = covidCache.getTtl();
 
-        covidCache.stale(testQuery);
+        covidCache.getOrStore(testQuery, () -> testResponse);
 
-        assertEquals(new CacheStats(1, queryResponses.size(), queryResponses.size()+1, ttl), covidCache.statsSnapshot());
+        assertEquals(new CacheStats(1, queryResponses.size(), queryResponses.size()+1, 4, ttl), covidCache.statsSnapshot());
     }
 
 }
