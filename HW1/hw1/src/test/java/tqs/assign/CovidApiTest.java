@@ -11,8 +11,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 import tqs.assign.api.ApiQuery;
 import tqs.assign.api.CovidApi;
 import tqs.assign.api.CovidCache;
-import tqs.assign.api.external.OpenCovidApi;
-import tqs.assign.api.external.VaccovidApi;
+import tqs.assign.api.external.covid19.Covid19Api;
+import tqs.assign.api.external.vaccovid.VaccovidApi;
 import tqs.assign.data.ResponseData;
 import tqs.assign.data.Stats;
 import tqs.assign.exceptions.UnavailableExternalApiException;
@@ -35,7 +35,7 @@ class CovidApiTest {
     @MockBean
     private VaccovidApi vaccovidApi;
     @MockBean
-    private OpenCovidApi openCovidApi;
+    private Covid19Api covid19Api;
 
     @Autowired
     private CovidApi covidApi;
@@ -51,35 +51,34 @@ class CovidApiTest {
     void setUpEverything() {
         ReflectionTestUtils.setField(covidApi, "supportedApis", List.of(
                 vaccovidApi,
-                openCovidApi
+                covid19Api
         ));
     }
 
+
+
     @Test
     void whenRequestCached_thenReturnCachedResponse() {
-        for (Map.Entry<ApiQuery, ResponseData> queryResponse : queryResponses.entrySet()) {
-            ApiQuery query = queryResponse.getKey();
-            ResponseData response = queryResponse.getValue();
-
+        queryResponses.forEach((query, response) -> {
             when(covidCache.stale(query)).thenReturn(false);
             when(covidCache.get(query)).thenReturn(response);
 
             assertEquals(response, covidApi.getStats(query));
-        }
+        });
     }
 
     @Test
     void whenStaleCacheEntry_thenCallExternalAPI() {
         disableCovidCache();
+        ApiQuery globalQuery = ApiQuery.builder().build();
 
         // Invalidate other APIs
-        when(openCovidApi.getStats(any())).thenThrow(UnavailableExternalApiException.class);
+        when(covid19Api.getStats(any())).thenThrow(UnavailableExternalApiException.class);
 
-        covidApi.getGlobalStats();
+        covidApi.getStats(globalQuery);
 
         verify(covidCache, times(0)).get(any());
-        verify(vaccovidApi, times(1)).getGlobalStats();
-        verify(vaccovidApi, times(1)).getStats(any());
+        verify(vaccovidApi, times(1)).getStats(globalQuery);
     }
 
     @Test
@@ -113,31 +112,32 @@ class CovidApiTest {
     @Test
     void whenUnavailableAPI_thenCallOtherAPI() {
         disableCovidCache();
+        ApiQuery globalQuery = ApiQuery.builder().build();
 
-        covidApi.getGlobalStats();
-        verify(vaccovidApi, times(1)).getStats(any());
-        verify(openCovidApi, times(0)).getStats(any());
+        covidApi.getStats(globalQuery);
+        verify(vaccovidApi, times(1)).getStats(globalQuery);
+        verify(covid19Api, times(0)).getStats(globalQuery);
 
         when(vaccovidApi.getStats(any())).thenThrow(UnavailableExternalApiException.class);
 
-        covidApi.getGlobalStats();
-        verify(vaccovidApi, times(2)).getStats(any());
-        verify(openCovidApi, times(1)).getStats(any());
+        covidApi.getStats(globalQuery);
+        verify(vaccovidApi, times(2)).getStats(globalQuery);
+        verify(covid19Api, times(1)).getStats(globalQuery);
 
-        when(openCovidApi.getStats(any())).thenThrow(UnavailableExternalApiException.class);
+        when(covid19Api.getStats(any())).thenThrow(UnavailableExternalApiException.class);
         when(vaccovidApi.getStats(any())).thenReturn(null);
 
-        covidApi.getGlobalStats();
-        verify(vaccovidApi, times(3)).getStats(any());
-        verify(openCovidApi, times(2)).getStats(any());
+        covidApi.getStats(globalQuery);
+        verify(vaccovidApi, times(3)).getStats(globalQuery);
+        verify(covid19Api, times(2)).getStats(globalQuery);
     }
 
     @Test
     void whenUnavailableAPIs_thenThrowUnavailableApiException() {
         when(vaccovidApi.getStats(any())).thenThrow(UnavailableExternalApiException.class);
-        when(openCovidApi.getStats(any())).thenThrow(UnavailableExternalApiException.class);
+        when(covid19Api.getStats(any())).thenThrow(UnavailableExternalApiException.class);
 
-        assertThrows(UnavailableExternalApiException.class, () -> covidApi.getGlobalStats());
+        assertThrows(UnavailableExternalApiException.class, () -> covidApi.getStats(ApiQuery.builder().build()));
     }
 
 

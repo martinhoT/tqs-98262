@@ -2,12 +2,13 @@ package tqs.assign.api;
 
 import tqs.assign.data.Stats;
 
+import java.util.List;
+import java.util.Set;
+
 public interface Api {
 
-    // Convenience methods
-    Stats getGlobalStats();
-    Stats getCountryStats(String countryISO);
-
     Stats getStats(ApiQuery query);
+
+    Set<String> getSupportedCountries();
 
 }

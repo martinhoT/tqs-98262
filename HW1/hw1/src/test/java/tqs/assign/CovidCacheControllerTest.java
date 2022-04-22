@@ -7,7 +7,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import tqs.assign.api.CovidCache;
+import tqs.assign.api.CovidApi;
 import tqs.assign.controller.CovidCacheController;
 import tqs.assign.data.CacheStats;
 
@@ -24,7 +24,7 @@ class CovidCacheControllerTest {
     private MockMvc mvc;
 
     @MockBean
-    private CovidCache covidCache;
+    private CovidApi covidApi;
 
     private final CacheStats cacheStats = new CacheStats(1, 4, 4, 60L);
 
@@ -32,7 +32,7 @@ class CovidCacheControllerTest {
 
     @BeforeEach
     void setUp() {
-        when(covidCache.statsSnapshot()).thenReturn(cacheStats);
+        when(covidApi.getCacheStats()).thenReturn(cacheStats);
     }
 
 

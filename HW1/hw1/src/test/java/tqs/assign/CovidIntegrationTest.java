@@ -12,8 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import tqs.assign.api.ApiQuery;
 import tqs.assign.api.CovidCache;
-import tqs.assign.api.external.OpenCovidApi;
-import tqs.assign.api.external.VaccovidApi;
+import tqs.assign.api.external.covid19.Covid19Api;
+import tqs.assign.api.external.vaccovid.VaccovidApi;
 import tqs.assign.data.CacheStats;
 import tqs.assign.data.ResponseData;
 import tqs.assign.data.Stats;
@@ -39,7 +39,7 @@ class CovidIntegrationTest {
     @MockBean
     private VaccovidApi vaccovidApi;
     @MockBean
-    private OpenCovidApi openCovidApi;
+    private Covid19Api covid19Api;
 
     private final Map<ApiQuery, ApiQueryInfo> queryResponses = Map.of(
             ApiQuery.builder().build(), new ApiQueryInfo("/api/covid/stats"),
@@ -109,7 +109,7 @@ class CovidIntegrationTest {
 
     private void registerQueryResponse(ApiQuery query, Stats response) {
         when(vaccovidApi.getStats(query)).thenReturn(response);
-        when(openCovidApi.getStats(query)).thenReturn(response);
+        when(covid19Api.getStats(query)).thenReturn(response);
     }
 
 }

@@ -1,8 +1,15 @@
 package tqs.assign.data;
 
-public record CacheStats(
-        int hits,
-        int misses,
-        int stored,
-        long ttl
-) implements ResponseData {}
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@Data
+@AllArgsConstructor
+public final class CacheStats implements ResponseData {
+
+    private final int hits;
+    private final int misses;
+    private final int stored;
+    private final long ttl;
+
+}

@@ -1,6 +1,5 @@
-package tqs.assign.api.external;
+package tqs.assign.api.external.vaccovid;
 
-import io.netty.handler.timeout.ReadTimeoutException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,9 +12,9 @@ import reactor.netty.http.client.HttpClient;
 import tqs.assign.api.Api;
 import tqs.assign.api.ApiQuery;
 import tqs.assign.data.Stats;
-import tqs.assign.exceptions.UnavailableExternalApiException;
 
 import java.time.Duration;
+import java.util.Set;
 
 @Component
 public class VaccovidApi implements Api {
@@ -38,30 +37,13 @@ public class VaccovidApi implements Api {
             .build();
 
     @Override
-    public Stats getGlobalStats() {
-        return apiClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("npm-covid-data/world")
-                        .build())
-                .exchangeToMono(response -> response.bodyToMono(Stats.class))
-                .onErrorMap(ReadTimeoutException.class, ex -> new UnavailableExternalApiException())
-                .block();
-    }
-
-    @Override
-    public Stats getCountryStats(String countryISO) {
-        return apiClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("api-covid-data/reports/{country-iso-code}")
-                        .build(countryISO))
-                .exchangeToMono(response -> response.bodyToMono(Stats.class))
-                .onErrorMap(ReadTimeoutException.class, ex -> new UnavailableExternalApiException())
-                .block();
-    }
-
-    @Override
     public Stats getStats(ApiQuery query) {
         // TODO
+        return null;
+    }
+
+    @Override
+    public Set<String> getSupportedCountries() {
         return null;
     }
 
