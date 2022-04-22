@@ -26,7 +26,7 @@ class CovidCacheControllerTest {
     @MockBean
     private CovidCache covidCache;
 
-    private final CacheStats cacheStats = new CacheStats(1, 4, 5, 4,60L);
+    private final CacheStats cacheStats = new CacheStats(1, 4, 4, 60L);
 
 
 

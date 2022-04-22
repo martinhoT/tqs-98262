@@ -92,7 +92,7 @@ class CovidIntegrationTest {
 
         ResponseEntity<CacheStats> cacheStatsResponse = restTemplate.getForEntity("/api/cache/stats", CacheStats.class);
         assertEquals(HttpStatus.OK, cacheStatsResponse.getStatusCode());
-        actualResponse = new CacheStats(1, 1, 2, 1, covidCache.getTtl());
+        actualResponse = new CacheStats(1, 1, 1, covidCache.getTtl());
         assertEquals(actualResponse, cacheStatsResponse.getBody());
     }
 

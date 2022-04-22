@@ -1,6 +1,7 @@
 package tqs.assign;
 
 import org.awaitility.Duration;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,11 +21,9 @@ import java.util.Map;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
 @ExtendWith(MockitoExtension.class)
 class CovidCacheTest {
 
-    @Autowired
     private CovidCache covidCache;
 
     // Provided for convenience
@@ -40,17 +39,26 @@ class CovidCacheTest {
 
 
 
+    @BeforeEach
+    void setUp() {
+        covidCache = new CovidCache();
+    }
+
+
+
     @Test
+    @DisplayName("Correct save functionality")
     void whenResponseStored_thenResponseSaved() {
         queryResponses.forEach((query, response) -> {
             covidCache.store(query, response);
 
-            assertEquals(testResponse, covidCache.get(query));
+            assertEquals(response, covidCache.get(query));
             assertFalse(covidCache.stale(query));
         });
     }
 
     @Test
+    @DisplayName("Response is stale when TTL is exceeded")
     void whenResponseStoredLongerThanTTL_thenResponseIsStale() {
         Duration ttl = Duration.FIVE_SECONDS;
 
@@ -63,27 +71,35 @@ class CovidCacheTest {
     }
 
     @Test
+    @DisplayName("NoCachedElementException when non existent response")
     void whenGetNonExistentResponse_thenThrowNoCachedElementException() {
         assertThrows(NoCachedElementException.class, () -> covidCache.get(testQuery));
     }
 
     @Test
+    @DisplayName("Response is stale if non existent")
     void whenResponseIsNonExistent_thenItIsStale() {
         assertTrue(covidCache.stale(testQuery));
     }
 
     @Test
-    @DisplayName("Check that the cache presents the correct stats. The count of hits and misses must be obtained from checking entry staleness")
+    @DisplayName("Correct cache stats")
     void whenGetCacheStats_thenCacheStatsObtained() {
         queryResponses.forEach((query, response) -> {
-            covidCache.getOrStore(query, () -> response);
+            assertEquals(response, covidCache.getOrStore(query, () -> response));
         });
 
         long ttl = covidCache.getTtl();
 
         covidCache.getOrStore(testQuery, () -> testResponse);
 
-        assertEquals(new CacheStats(1, queryResponses.size(), queryResponses.size()+1, 4, ttl), covidCache.statsSnapshot());
+        assertEquals(new CacheStats(1, queryResponses.size(), queryResponses.size(), ttl), covidCache.statsSnapshot());
+
+        ttl = 0L;
+        ReflectionTestUtils.setField(covidCache, "ttl", ttl);
+        covidCache.getOrStore(testQuery, () -> testResponse);
+        assertEquals(new CacheStats(1, queryResponses.size()+1, queryResponses.size(), ttl), covidCache.statsSnapshot());
+
     }
 
 }

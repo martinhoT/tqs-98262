@@ -5,7 +5,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import tqs.assign.data.CacheStats;
 import tqs.assign.data.ResponseData;
+import tqs.assign.exceptions.NoCachedElementException;
 
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Supplier;
 
 @Component
@@ -15,19 +19,31 @@ public class CovidCache {
     @Value("${covid-cache.ttl}")
     private long ttl;
 
+    private int hits = 0;
+    private int misses = 0;
+
+    private final Map<ApiQuery, ResponseData> cache = new HashMap<>();
+    private final Map<ApiQuery, Long> timestamps = new HashMap<>();
+
+
+
     public ResponseData store(ApiQuery apiQuery, ResponseData responseData) {
-        // TODO
-        return null;
+        cache.put(apiQuery, responseData);
+        timestamps.put(apiQuery, Instant.now().getEpochSecond());
+        return responseData;
     }
 
     public ResponseData get(ApiQuery apiQuery) {
-        // TODO
-        return null;
+        if (!cache.containsKey(apiQuery))
+            throw new NoCachedElementException();
+        return cache.get(apiQuery);
     }
 
     public boolean stale(ApiQuery apiQuery) {
-        // TODO
-        return false;
+        boolean stale = !timestamps.containsKey(apiQuery) || Instant.now().getEpochSecond() - timestamps.get(apiQuery) > ttl;
+        if (stale) misses++;
+        else hits++;
+        return stale;
     }
 
     /**
@@ -46,8 +62,7 @@ public class CovidCache {
     }
 
     public CacheStats statsSnapshot() {
-        // TODO
-        return null;
+        return new CacheStats(hits, misses, cache.size(), ttl);
     }
 
 }

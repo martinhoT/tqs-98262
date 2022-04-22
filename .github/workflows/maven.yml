@@ -27,5 +27,12 @@ jobs:
         cache: maven
     - name: Build with Maven
       run: mvn -B verify --file pom.xml
+    - name: Test Report
+      uses: dorny/test-reporter@v1
+      if: success() || failure()
+      with:
+          name: JEST Tests
+          path: surefire-reports/TEST-tqs.assign.*.xml
+          reporter: jest-junit
     - name: Run Codacy Analysis CLI
       uses: codacy/codacy-analysis-cli-action@master
