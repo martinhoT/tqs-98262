@@ -1,4 +1,4 @@
-package tqs.assign;
+package tqs.assign.api;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+import tqs.assign.TestUtils;
 import tqs.assign.api.ApiQuery;
 import tqs.assign.api.CovidCache;
 import tqs.assign.data.CacheStats;

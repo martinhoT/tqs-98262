@@ -1,4 +1,4 @@
-package tqs.assign;
+package tqs.assign.controller;
 
 import com.google.gson.JsonArray;
 import org.junit.jupiter.api.BeforeEach;

@@ -3,8 +3,8 @@ package tqs.assign.api;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import tqs.assign.api.external.covid19.Covid19Api;
-import tqs.assign.api.external.vaccovid.VaccovidApi;
+import tqs.assign.api.external.Covid19Api;
+import tqs.assign.api.external.VaccovidApi;
 import tqs.assign.data.CacheStats;
 import tqs.assign.data.Stats;
 import tqs.assign.exceptions.UnavailableApiException;
@@ -38,9 +38,13 @@ public class CovidApi implements Api {
         chosenApiIdx = 0;
 
         Set<String> firstSupportedCountries = supportedApis.get(0).getSupportedCountries();
-        supportedCountries = supportedApis.stream()
-                .map(Api::getSupportedCountries)
-                .collect(() -> new HashSet<>(firstSupportedCountries), Set::retainAll, Set::retainAll);
+        if (firstSupportedCountries != null)
+            supportedCountries = supportedApis.stream()
+                    .skip(1L)
+                    .map(Api::getSupportedCountries)
+                    .collect(() -> new HashSet<>(firstSupportedCountries), Set::retainAll, Set::retainAll);
+        else
+            supportedCountries = new HashSet<>();
 
         this.covidCache = covidCache;
 

@@ -1,4 +1,4 @@
-package tqs.assign;
+package tqs.assign.controller;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

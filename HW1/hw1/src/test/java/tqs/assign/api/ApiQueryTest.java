@@ -1,4 +1,4 @@
-package tqs.assign;
+package tqs.assign.api;
 
 import org.junit.jupiter.api.Test;
 import tqs.assign.api.ApiQuery;

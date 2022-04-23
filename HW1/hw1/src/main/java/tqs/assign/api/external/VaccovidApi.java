@@ -1,4 +1,4 @@
-package tqs.assign.api.external.vaccovid;
+package tqs.assign.api.external;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

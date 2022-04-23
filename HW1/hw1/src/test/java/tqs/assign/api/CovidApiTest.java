@@ -1,4 +1,4 @@
-package tqs.assign;
+package tqs.assign.api;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -8,11 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.util.ReflectionTestUtils;
-import tqs.assign.api.ApiQuery;
-import tqs.assign.api.CovidApi;
-import tqs.assign.api.CovidCache;
-import tqs.assign.api.external.covid19.Covid19Api;
-import tqs.assign.api.external.vaccovid.VaccovidApi;
+import tqs.assign.TestUtils;
+import tqs.assign.api.external.Covid19Api;
+import tqs.assign.api.external.VaccovidApi;
 import tqs.assign.data.ResponseData;
 import tqs.assign.data.Stats;
 import tqs.assign.exceptions.UnavailableExternalApiException;
