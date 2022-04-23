@@ -1,5 +1,6 @@
 package tqs.assign;
 
+import com.google.gson.JsonArray;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,7 @@ import tqs.assign.exceptions.UnavailableApiException;
 import tqs.assign.exceptions.UnsupportedCountryISOException;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -83,6 +85,21 @@ class CovidControllerTest {
     }
 
 
+
+    @Test
+    @DisplayName("Obtain supported countries")
+    void whenGetSupportedCountries_thenReturnSupportedCountries() throws Exception {
+        Set<String> countries = countryStats.keySet();
+        when(covidApi.getSupportedCountries()).thenReturn(countries);
+
+        MvcResult result = mvc.perform(get("/api/covid/countries"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String[] resultCountries = gson.fromJson(result.getResponse().getContentAsString(), String[].class);
+
+        assertEquals(countries, new HashSet<>(List.of(resultCountries)));
+    }
 
     @Test
     @DisplayName("Obtain global stats")

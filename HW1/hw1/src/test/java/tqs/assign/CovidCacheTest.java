@@ -1,13 +1,10 @@
 package tqs.assign;
 
-import org.awaitility.Duration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.util.ReflectionTestUtils;
 import tqs.assign.api.ApiQuery;
 import tqs.assign.api.CovidCache;
@@ -15,10 +12,9 @@ import tqs.assign.data.CacheStats;
 import tqs.assign.data.ResponseData;
 import tqs.assign.exceptions.NoCachedElementException;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.*;
@@ -63,13 +59,13 @@ class CovidCacheTest {
     @Test
     @DisplayName("Response is stale when TTL is exceeded")
     void whenResponseStoredLongerThanTTL_thenResponseIsStale() {
-        Duration ttl = Duration.FIVE_SECONDS;
+        Duration ttl = Duration.ofSeconds(5L);
 
-        ReflectionTestUtils.setField(covidCache, "ttl", ttl.getValue());
+        ReflectionTestUtils.setField(covidCache, "ttl", ttl.getSeconds());
         covidCache.store(testQuery, testResponse);
         assertFalse(covidCache.stale(testQuery));
 
-        await().atLeast(ttl).and().atMost(ttl.plus(1L)).untilAsserted(
+        await().atLeast(ttl).and().atMost(ttl.plusSeconds(1L)).untilAsserted(
                 () -> assertTrue(covidCache.stale(testQuery)));
     }
 
@@ -98,11 +94,16 @@ class CovidCacheTest {
 
         assertEquals(new CacheStats(1, queryResponses.size(), queryResponses.size(), ttl), covidCache.statsSnapshot());
 
-        final long noTtl = 0L;
-        ReflectionTestUtils.setField(covidCache, "ttl", noTtl);
-        await().atMost(noTtl + 2, TimeUnit.SECONDS).untilAsserted(() -> assertTrue(covidCache.stale(testQuery)));
+        Duration noTtl = Duration.ZERO;
+        ReflectionTestUtils.setField(covidCache, "ttl", noTtl.getSeconds());
+        await().atMost(noTtl.plusSeconds(2L)).untilAsserted(() -> assertTrue(covidCache.stale(testQuery)));
         covidCache.getOrStore(testQuery, () -> testResponse);
-        assertEquals(new CacheStats(1, queryResponses.size()+1, queryResponses.size(), noTtl), covidCache.statsSnapshot());
+        assertEquals(new CacheStats(
+                1,
+                queryResponses.size()+1,
+                queryResponses.size(),
+                noTtl.getSeconds()
+            ), covidCache.statsSnapshot());
     }
 
 }

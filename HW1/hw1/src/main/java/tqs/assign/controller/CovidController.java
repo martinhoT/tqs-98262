@@ -10,6 +10,7 @@ import tqs.assign.exceptions.UnsupportedCountryISOException;
 
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/covid")
@@ -35,6 +36,11 @@ public class CovidController {
         before.ifPresent(apiQueryBuilder::before);
 
         return covidApi.getStats(apiQueryBuilder.build());
+    }
+
+    @GetMapping("/countries")
+    public Set<String> getCountries() {
+        return covidApi.getSupportedCountries();
     }
 
     private void validCountryISO(String countryISO) {
