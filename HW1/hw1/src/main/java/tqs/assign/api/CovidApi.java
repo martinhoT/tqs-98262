@@ -7,8 +7,10 @@ import tqs.assign.api.external.Covid19Api;
 import tqs.assign.api.external.VaccovidApi;
 import tqs.assign.data.CacheStats;
 import tqs.assign.data.Stats;
+import tqs.assign.exceptions.IncorrectlyFormattedCountryException;
 import tqs.assign.exceptions.UnavailableApiException;
 import tqs.assign.exceptions.UnavailableExternalApiException;
+import tqs.assign.exceptions.UnsupportedCountryISOException;
 
 import java.util.HashSet;
 import java.util.List;
@@ -52,6 +54,9 @@ public class CovidApi implements Api {
 
     @Override
     public Stats getStats(ApiQuery query) {
+        if (query.getAtCountry() != null)
+            validateCountryIso(query.getAtCountry());
+
         Stats response = null;
         int initialApiIdx = chosenApiIdx;
         do {
@@ -71,6 +76,13 @@ public class CovidApi implements Api {
 
     public CacheStats getCacheStats() {
         return covidCache.statsSnapshot();
+    }
+
+    private void validateCountryIso(String countryISO) {
+        if (!countryISO.matches("[A-Z]{1,3}"))
+            throw new IncorrectlyFormattedCountryException(countryISO);
+        if (!supportedCountries.contains(countryISO))
+            throw new UnsupportedCountryISOException(countryISO);
     }
 
 }

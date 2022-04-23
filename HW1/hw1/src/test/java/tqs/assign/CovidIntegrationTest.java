@@ -20,6 +20,7 @@ import tqs.assign.data.Stats;
 
 import java.time.LocalDate;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
@@ -66,6 +67,8 @@ class CovidIntegrationTest {
 
         public ApiQueryInfo(String url) { response = TestUtils.randomStats(); this.requestUrl = url; }
     }
+
+    private Set<String> countries = Set.of("PT", "GB");
 
 
 

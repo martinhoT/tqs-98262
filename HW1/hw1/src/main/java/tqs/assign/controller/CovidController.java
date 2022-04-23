@@ -5,8 +5,6 @@ import org.springframework.web.bind.annotation.*;
 import tqs.assign.api.ApiQuery;
 import tqs.assign.api.CovidApi;
 import tqs.assign.data.Stats;
-import tqs.assign.exceptions.IncorrectlyFormattedCountryException;
-import tqs.assign.exceptions.UnsupportedCountryISOException;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -29,7 +27,6 @@ public class CovidController {
             @RequestParam(name="before", required=false) Optional<LocalDate> before) {
 
         ApiQuery.ApiQueryBuilder apiQueryBuilder = ApiQuery.builder();
-        countryISO.ifPresent(this::validCountryISO);
         countryISO.ifPresent(apiQueryBuilder::atCountry);
         date.ifPresent(apiQueryBuilder::atDate);
         after.ifPresent(apiQueryBuilder::after);
@@ -41,13 +38,6 @@ public class CovidController {
     @GetMapping("/countries")
     public Set<String> getCountries() {
         return covidApi.getSupportedCountries();
-    }
-
-    private void validCountryISO(String countryISO) {
-        if (!countryISO.matches("[a-zA-Z]+"))
-            throw new IncorrectlyFormattedCountryException(countryISO);
-        if (!covidApi.getSupportedCountries().contains(countryISO))
-            throw new UnsupportedCountryISOException(countryISO);
     }
 
 }

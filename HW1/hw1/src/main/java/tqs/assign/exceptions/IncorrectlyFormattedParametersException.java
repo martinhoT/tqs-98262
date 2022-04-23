@@ -1,13 +1,12 @@
 package tqs.assign.exceptions;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.server.ResponseStatusException;
 
-@ResponseStatus(code = HttpStatus.BAD_REQUEST)
-public abstract class IncorrectlyFormattedParametersException extends RuntimeException {
+public abstract class IncorrectlyFormattedParametersException extends ResponseStatusException {
 
     protected IncorrectlyFormattedParametersException(String argType, String argSupplied, String argFormat) {
-        super("%s argument '%s' is not properly formatted (%s)".formatted(argType, argSupplied, argFormat));
+        super(HttpStatus.BAD_REQUEST, "%s argument '%s' is not properly formatted (%s)".formatted(argType, argSupplied, argFormat));
     }
 
 }

@@ -3,7 +3,6 @@ package tqs.assign.controller;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 import tqs.assign.exceptions.IncorrectlyFormattedDateException;
-import tqs.assign.exceptions.UnavailableExternalApiException;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;

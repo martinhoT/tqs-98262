@@ -1,6 +1,5 @@
 package tqs.assign.controller;
 
-import com.google.gson.JsonArray;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -9,17 +8,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.MultiValueMapAdapter;
 import tqs.assign.api.ApiQuery;
 import tqs.assign.api.CovidApi;
-import tqs.assign.controller.CovidController;
 import tqs.assign.data.Stats;
-import tqs.assign.exceptions.IncorrectlyFormattedCountryException;
-import tqs.assign.exceptions.IncorrectlyFormattedDateException;
 import tqs.assign.exceptions.UnavailableApiException;
-import tqs.assign.exceptions.UnsupportedCountryISOException;
 
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -46,6 +40,7 @@ class CovidControllerTest {
 
 
     private Map<String, Stats> countryStats;
+    private Set<String> countries;
     private Stats globalStats;
 
     @BeforeEach
@@ -82,6 +77,9 @@ class CovidControllerTest {
                 4839636,
                 0.05
         );
+
+        countries = countryStats.keySet();
+        when(covidApi.getSupportedCountries()).thenReturn(countries);
     }
 
 
@@ -89,9 +87,6 @@ class CovidControllerTest {
     @Test
     @DisplayName("Obtain supported countries")
     void whenGetSupportedCountries_thenReturnSupportedCountries() throws Exception {
-        Set<String> countries = countryStats.keySet();
-        when(covidApi.getSupportedCountries()).thenReturn(countries);
-
         MvcResult result = mvc.perform(get("/api/covid/countries"))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -183,81 +178,6 @@ class CovidControllerTest {
     }
 
     @Test
-    @DisplayName("Priority to specific date argument in detriment to range date arguments")
-    void whenGetStatsAtDateAndRange_thenPrioritizeAtDate() throws Exception {
-        Set<String> countryISOs = countryStats.keySet();
-        LocalDate dateAt = LocalDate.of(2022, 1, 1);
-        LocalDate dateBefore = LocalDate.of(2022, 2, 2);
-        LocalDate dateAfter = LocalDate.of(2021, 1, 1);
-
-        when(covidApi.getStats(ApiQuery.builder()
-                .atDate(dateAt)
-                .before(dateBefore)
-                .after(dateAfter)
-                .build()))
-            .thenReturn(globalStats);
-        for (String countryISO : countryISOs)
-            when(covidApi.getStats(ApiQuery.builder()
-                    .atCountry(countryISO)
-                    .atDate(dateAt)
-                    .before(dateBefore)
-                    .after(dateAfter)
-                    .build()))
-                .thenReturn(countryStats.get(countryISO));
-
-        assertCorrectCountryAndGlobalStatsForRequest(new MultiValueMapAdapter<>(Map.of(
-                "date", List.of(dateAt.toString()),
-                "after", List.of(dateAfter.toString()),
-                "before", List.of(dateBefore.toString())
-        )));
-    }
-
-    @Test
-    @DisplayName("Bad Request when date arguments are not properly formatted")
-    void whenDateArgumentsAreNotFormatted_thenExpectBadRequest() throws Exception {
-        String baseMsg = "Date argument '%s' is not properly formatted (ISO Local Date format: yyyy-MM-dd)";
-        Map<String, String> parameters = Map.of(
-                "date", "2022-13-01",
-                "before", "01-12-2022",
-                "after", "11-22-2022"
-        );
-
-        for (Map.Entry<String, String> parameter : parameters.entrySet())
-            mvc.perform(get("/api/covid/stats")
-                    .queryParam(parameter.getKey(), parameter.getValue()))
-                .andExpect(status().isBadRequest())
-                .andExpect(status().reason(baseMsg.formatted(parameter.getKey())))
-                .andExpect(result -> assertTrue(result.getResolvedException() instanceof IncorrectlyFormattedDateException));
-    }
-
-    @Test
-    @DisplayName("Bad Request when country ISO is not properly formatted")
-    void whenInvalidCountryISO_thenExpectBadRequest() throws Exception {
-        String baseMsg = "Country argument '%s' is not properly formatted (ISO 3166-1 alpha code)";
-        List<String> countryISOCodes = List.of("Portugal", "876", "United Kingdom", "O_O");
-
-        for (String countryISOCode : countryISOCodes) {
-            mvc.perform(get("/api/covid/stats/{country}", countryISOCode))
-                .andExpect(status().isBadRequest())
-                .andExpect(status().reason(baseMsg.formatted(countryISOCode)))
-                .andExpect(result -> assertTrue(result.getResolvedException() instanceof IncorrectlyFormattedCountryException));
-        }
-    }
-
-    @Test
-    @DisplayName("Not Found when country ISO doesn't exist (not supported)")
-    void whenNonExistentCountryISO_thenExpectNotFound() throws Exception {
-        String baseMsg = "The specified country ISO code '%s' does not exist in this platform";
-        List<String> countryISOCodes = List.of("ABC", "ZZZ", "WOAH");
-
-        for (String countryISOCode : countryISOCodes)
-            mvc.perform(get("/api/covid/stats/{country}", countryISOCode))
-                .andExpect(status().isNotFound())
-                .andExpect(status().reason(baseMsg.formatted(countryISOCode)))
-                .andExpect(result -> assertTrue(result.getResolvedException() instanceof UnsupportedCountryISOException));
-    }
-
-    @Test
     @DisplayName("UnavailableApiException when all external APIs are unreachable")
     void whenExternalAPIsUnreachable_thenThrowUnavailableApiException() throws Exception {
         when(covidApi.getStats(any())).thenThrow(new UnavailableApiException());
@@ -267,7 +187,7 @@ class CovidControllerTest {
         mvc.perform(get("/api/covid/stats"))
                 .andExpect(status().isGatewayTimeout())
                 .andExpect(status().reason(msg))
-                .andExpect(result -> assertTrue(result.getResolvedException() instanceof UnavailableApiException));
+                .andExpect(result -> assertInstanceOf(UnavailableApiException.class, result.getResolvedException()));
     }
 
 

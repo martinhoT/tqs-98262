@@ -1,12 +1,13 @@
 package tqs.assign.api.external;
 
+import okhttp3.HttpUrl;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.jupiter.api.*;
-import org.springframework.util.MultiValueMap;
-import org.springframework.util.MultiValueMapAdapter;
+import org.mockito.Mock;
 import tqs.assign.TestUtils;
+import tqs.assign.api.Api;
 import tqs.assign.api.ApiQuery;
 import tqs.assign.data.Stats;
 import tqs.assign.exceptions.UnavailableExternalApiException;
@@ -15,11 +16,13 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 import static tqs.assign.api.external.Covid19Api.Covid19Country;
 import static tqs.assign.api.external.Covid19Api.Covid19Stats;
 
@@ -108,9 +111,11 @@ class Covid19ApiTest {
         );
 
         RecordedRequest request = mockWebServer.takeRequest();
-        assertEquals("/world", request.getRequestUrl().encodedPath());
-        assertEquals("2021-01-31T00:00:00", request.getRequestUrl().queryParameter("from"));
-        assertEquals("2021-02-01T00:00:00", request.getRequestUrl().queryParameter("to"));
+        HttpUrl httpUrl = request.getRequestUrl();
+        assertNotNull(httpUrl);
+        assertEquals("/world", httpUrl.encodedPath());
+        assertEquals("2021-01-31T00:00:00", httpUrl.queryParameter("from"));
+        assertEquals("2021-02-01T00:00:00", httpUrl.queryParameter("to"));
 
 
         results = List.of(
@@ -156,15 +161,16 @@ class Covid19ApiTest {
         );
 
         request = mockWebServer.takeRequest();
-        assertEquals("/country/portugal", request.getRequestUrl().encodedPath());
-        assertEquals("2021-01-29T00:00:00", request.getRequestUrl().queryParameter("from"));
-        assertEquals("2021-02-01T00:00:00", request.getRequestUrl().queryParameter("to"));
+        httpUrl = request.getRequestUrl();
+        assertNotNull(httpUrl);
+        assertEquals("/country/portugal", httpUrl.encodedPath());
+        assertEquals("2021-01-29T00:00:00", httpUrl.queryParameter("from"));
+        assertEquals("2021-02-01T00:00:00", httpUrl.queryParameter("to"));
     }
 
     @Test
     @DisplayName("UnavailableExternalApiException when no results")
     void whenNoResponse_thenThrowUnavailableExternalApiException() {
-        MultiValueMap<String, String> queryParams = new MultiValueMapAdapter<>(Collections.emptyMap());
         ApiQuery worldQuery = ApiQuery.builder().build();
 
         mockWebServer.enqueue(new MockResponse()
@@ -174,5 +180,66 @@ class Covid19ApiTest {
         assertThrows(UnavailableExternalApiException.class, () -> covid19Api.getStats(worldQuery));
     }
 
+    @Test
+    @DisplayName("Priority to specific date argument in detriment to range date arguments")
+    void whenGetStatsAtDateAndRange_thenPrioritizeAtDate() throws Exception {
+        LocalDate dateAt = LocalDate.of(2022, 1, 1);
+        LocalDate dateBefore = LocalDate.of(2022, 2, 2);
+        LocalDate dateAfter = LocalDate.of(2021, 1, 1);
+
+        Stats responseAtDate = TestUtils.randomStats();
+        Stats responseAtRange = TestUtils.randomStats();
+
+        ApiQuery queryAtDate = ApiQuery.builder()
+                .atDate(dateAt)
+                .build();
+        mockWebServer.enqueue(new MockResponse()
+                .setBody( TestUtils.gson.toJson(List.of(responseAtDate)) ));
+
+        ApiQuery queryBoth = ApiQuery.builder()
+                .atDate(dateAt)
+                .before(dateBefore)
+                .after(dateAfter)
+                .build();
+        mockWebServer.enqueue(new MockResponse()
+                .setBody( TestUtils.gson.toJson(List.of(responseAtDate)) ));
+
+        ApiQuery queryAtRange = ApiQuery.builder()
+                .after(dateAfter)
+                .before(dateBefore)
+                .build();
+        mockWebServer.enqueue(new MockResponse()
+                .setBody( TestUtils.gson.toJson(List.of(responseAtRange)) ));
+
+        assertEquals(responseAtDate, covid19Api.getStats(queryAtDate));
+        RecordedRequest request = mockWebServer.takeRequest();
+        HttpUrl httpUrl = request.getRequestUrl();
+        assertNotNull(httpUrl);
+        assertThat(httpUrl.queryParameterNames()).contains("from", "to");
+        assertEquals(dateAt.minusDays(1L).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                httpUrl.queryParameter("from"));
+        assertEquals(dateAt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                httpUrl.queryParameter("to"));
+
+        assertEquals(responseAtDate, covid19Api.getStats(queryBoth));
+        request = mockWebServer.takeRequest();
+        httpUrl = request.getRequestUrl();
+        assertNotNull(httpUrl);
+        assertThat(httpUrl.queryParameterNames()).contains("from", "to");
+        assertEquals(dateAt.minusDays(1L).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                httpUrl.queryParameter("from"));
+        assertEquals(dateAt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                httpUrl.queryParameter("to"));
+
+        assertEquals(responseAtRange, covid19Api.getStats(queryAtRange));
+        request = mockWebServer.takeRequest();
+        httpUrl = request.getRequestUrl();
+        assertNotNull(httpUrl);
+        assertThat(httpUrl.queryParameterNames()).contains("from", "to");
+        assertEquals(dateAfter.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                httpUrl.queryParameter("from"));
+        assertEquals(dateBefore.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                httpUrl.queryParameter("to"));
+    }
 
 }

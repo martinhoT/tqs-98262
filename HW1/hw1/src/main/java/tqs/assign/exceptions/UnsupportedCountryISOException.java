@@ -1,13 +1,12 @@
 package tqs.assign.exceptions;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.server.ResponseStatusException;
 
-@ResponseStatus(code = HttpStatus.NOT_FOUND)
-public class UnsupportedCountryISOException extends RuntimeException {
+public class UnsupportedCountryISOException extends ResponseStatusException {
 
     public UnsupportedCountryISOException(String countryISO) {
-        super("The specified country ISO code '%s' does not exist in this platform".formatted(countryISO));
+        super(HttpStatus.NOT_FOUND, "The specified country ISO code '%s' does not exist in this platform".formatted(countryISO));
     }
 
 }

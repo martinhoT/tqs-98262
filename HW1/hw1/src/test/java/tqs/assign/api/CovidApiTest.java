@@ -1,6 +1,7 @@
 package tqs.assign.api;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.util.MultiValueMapAdapter;
 import tqs.assign.TestUtils;
 import tqs.assign.api.external.Covid19Api;
 import tqs.assign.api.external.VaccovidApi;
@@ -18,6 +20,7 @@ import tqs.assign.exceptions.UnavailableExternalApiException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -43,14 +46,16 @@ class CovidApiTest {
             ApiQuery.builder().atCountry("PT").build(), TestUtils.randomStats()
     );
 
+    private final List<Api> supportedApis = List.of(
+            vaccovidApi,
+            covid19Api
+    );
+
 
 
     @BeforeEach
     void setUpEverything() {
-        ReflectionTestUtils.setField(covidApi, "supportedApis", List.of(
-                vaccovidApi,
-                covid19Api
-        ));
+        ReflectionTestUtils.setField(covidApi, "supportedApis", supportedApis);
     }
 
 
@@ -116,14 +121,13 @@ class CovidApiTest {
         verify(vaccovidApi, times(1)).getStats(globalQuery);
         verify(covid19Api, times(0)).getStats(globalQuery);
 
-        when(vaccovidApi.getStats(any())).thenThrow(UnavailableExternalApiException.class);
+        disableApisBut(covid19Api, null);
 
         covidApi.getStats(globalQuery);
         verify(vaccovidApi, times(2)).getStats(globalQuery);
         verify(covid19Api, times(1)).getStats(globalQuery);
 
-        when(covid19Api.getStats(any())).thenThrow(UnavailableExternalApiException.class);
-        when(vaccovidApi.getStats(any())).thenReturn(null);
+        disableApisBut(vaccovidApi, null);
 
         covidApi.getStats(globalQuery);
         verify(vaccovidApi, times(3)).getStats(globalQuery);
@@ -139,6 +143,13 @@ class CovidApiTest {
     }
 
 
+
+    private void disableApisBut(Api onlyEnabledOne, Stats returnValue) {
+        for (Api api : supportedApis)
+            if (!api.equals(onlyEnabledOne))
+                when(api.getStats(any())).thenThrow(UnavailableExternalApiException.class);
+        when(onlyEnabledOne.getStats(any())).thenReturn(returnValue);
+    }
 
     private void disableCovidCache() {
         when(covidCache.stale(any())).thenReturn(true);
