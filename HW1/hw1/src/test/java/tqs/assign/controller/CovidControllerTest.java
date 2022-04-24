@@ -26,7 +26,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static tqs.assign.TestUtils.gson;
+import static tqs.assign.Utils.gson;
 
 @WebMvcTest(CovidController.class)
 class CovidControllerTest {
@@ -54,6 +54,7 @@ class CovidControllerTest {
                         12345,
                         0,
                         5839,
+                        0,
                         0.001),
                 "GB", new Stats(
                         68325673,
@@ -63,6 +64,7 @@ class CovidControllerTest {
                         153264,
                         68943,
                         2515,
+                        0,
                         0.002
                 )
         );
@@ -75,6 +77,7 @@ class CovidControllerTest {
                 86759757,
                 7483,
                 4839636,
+                0,
                 0.05
         );
 

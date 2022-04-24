@@ -7,7 +7,8 @@ public final class NullStats extends Stats {
                 Stats.UNSUPPORTED_FIELD, Stats.UNSUPPORTED_FIELD,
                 Stats.UNSUPPORTED_FIELD, Stats.UNSUPPORTED_FIELD,
                 Stats.UNSUPPORTED_FIELD, Stats.UNSUPPORTED_FIELD,
-                Stats.UNSUPPORTED_FIELD, Stats.UNSUPPORTED_FIELD
+                Stats.UNSUPPORTED_FIELD, Stats.UNSUPPORTED_FIELD,
+                Stats.UNSUPPORTED_FIELD
         );
     }
 

@@ -16,6 +16,7 @@ public class Stats implements ResponseData {
     private final int recovered;
     private final int newRecovered;
     private final int active;
+    private final int newActive;
     private final double fatalityRate;
 
     @Override

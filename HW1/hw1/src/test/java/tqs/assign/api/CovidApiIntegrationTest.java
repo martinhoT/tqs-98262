@@ -4,16 +4,14 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import tqs.assign.TestUtils;
-import tqs.assign.api.external.Covid19Api;
-import tqs.assign.api.external.VaccovidApi;
+import tqs.assign.api.external.Covid19FastestUpdateApi;
+import tqs.assign.api.external.JohnsHopkinsApi;
 import tqs.assign.data.Stats;
 import tqs.assign.exceptions.UnavailableApiException;
 import tqs.assign.exceptions.UnavailableExternalApiException;
@@ -34,9 +32,9 @@ class CovidApiIntegrationTest {
     @SpyBean
     private CovidCache covidCache;
     @MockBean
-    private VaccovidApi vaccovidApi;
+    private JohnsHopkinsApi johnsHopkinsApi;
     @MockBean
-    private Covid19Api covid19Api;
+    private Covid19FastestUpdateApi covid19FastestUpdateApi;
 
     @Autowired
     private CovidApi covidApi;
@@ -53,8 +51,8 @@ class CovidApiIntegrationTest {
     @BeforeEach
     void setUp() {
         supportedApis = List.of(
-                vaccovidApi,
-                covid19Api
+                johnsHopkinsApi,
+                covid19FastestUpdateApi
         );
 
         ReflectionTestUtils.setField(covidApi, "supportedApis", supportedApis);
@@ -90,18 +88,18 @@ class CovidApiIntegrationTest {
     void whenStaleCacheEntry_thenCallExternalAPI() {
         ApiQuery globalQuery = ApiQuery.builder().build();
 
-        disableApisBut(vaccovidApi);
+        disableApisBut(johnsHopkinsApi);
 
         covidApi.getStats(globalQuery);
 
         verify(covidCache, times(0)).get(globalQuery);
-        verify(vaccovidApi, times(1)).getStats(globalQuery);
+        verify(johnsHopkinsApi, times(1)).getStats(globalQuery);
     }
 
     @Test
     @DisplayName("Store on cache")
     void whenRequestMade_thenResponseCached() {
-        disableApisBut(vaccovidApi);
+        disableApisBut(johnsHopkinsApi);
 
         ApiQuery apiQuery = ApiQuery.builder()
                 .atCountry("PT")
@@ -109,16 +107,16 @@ class CovidApiIntegrationTest {
                 .build();
         Stats apiResponse = TestUtils.randomStats();
 
-        when(vaccovidApi.getStats(apiQuery)).thenReturn(apiResponse);
+        when(johnsHopkinsApi.getStats(apiQuery)).thenReturn(apiResponse);
 
         covidApi.getStats(apiQuery);
-        verify(vaccovidApi, times(1)).getStats(apiQuery);
+        verify(johnsHopkinsApi, times(1)).getStats(apiQuery);
         verify(covidCache, times(1)).store(apiQuery, apiResponse);
 
         int numberOfExtraRequests = 5;
         IntStream.range(0, numberOfExtraRequests).forEach((i) -> covidApi.getStats(apiQuery));
 
-        verify(vaccovidApi, times(1)).getStats(apiQuery);
+        verify(johnsHopkinsApi, times(1)).getStats(apiQuery);
         verify(covidCache, times(1)).store(apiQuery, apiResponse);
         verify(covidCache, times(numberOfExtraRequests)).get(apiQuery);
     }
@@ -130,27 +128,27 @@ class CovidApiIntegrationTest {
         ApiQuery globalQuery = ApiQuery.builder().build();
 
         covidApi.getStats(globalQuery);
-        verify(vaccovidApi, times(1)).getStats(globalQuery);
-        verify(covid19Api, times(0)).getStats(globalQuery);
+        verify(johnsHopkinsApi, times(1)).getStats(globalQuery);
+        verify(covid19FastestUpdateApi, times(0)).getStats(globalQuery);
 
-        disableApisBut(covid19Api);
-
-        covidApi.getStats(globalQuery);
-        verify(vaccovidApi, times(2)).getStats(globalQuery);
-        verify(covid19Api, times(1)).getStats(globalQuery);
-
-        disableApisBut(vaccovidApi);
+        disableApisBut(covid19FastestUpdateApi);
 
         covidApi.getStats(globalQuery);
-        verify(vaccovidApi, times(3)).getStats(globalQuery);
-        verify(covid19Api, times(2)).getStats(globalQuery);
+        verify(johnsHopkinsApi, times(2)).getStats(globalQuery);
+        verify(covid19FastestUpdateApi, times(1)).getStats(globalQuery);
+
+        disableApisBut(johnsHopkinsApi);
+
+        covidApi.getStats(globalQuery);
+        verify(johnsHopkinsApi, times(3)).getStats(globalQuery);
+        verify(covid19FastestUpdateApi, times(2)).getStats(globalQuery);
     }
 
     @Test
     @DisplayName("UnavailableApiException when no external APIs can fulfill the request")
     void whenUnavailableAPIs_thenThrowUnavailableApiException() {
-        when(vaccovidApi.getStats(any())).thenThrow(UnavailableExternalApiException.class);
-        when(covid19Api.getStats(any())).thenThrow(UnavailableExternalApiException.class);
+        when(johnsHopkinsApi.getStats(any())).thenThrow(UnavailableExternalApiException.class);
+        when(covid19FastestUpdateApi.getStats(any())).thenThrow(UnavailableExternalApiException.class);
 
         assertThrows(UnavailableApiException.class, () -> covidApi.getStats(ApiQuery.builder().build()));
     }
@@ -175,8 +173,8 @@ class CovidApiIntegrationTest {
     }
 
     private void registerQueryResponse(ApiQuery query, Stats response) {
-        doReturn(response).when(vaccovidApi).getStats(query);
-        doReturn(response).when(covid19Api).getStats(query);
+        doReturn(response).when(johnsHopkinsApi).getStats(query);
+        doReturn(response).when(covid19FastestUpdateApi).getStats(query);
     }
 
 }

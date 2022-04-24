@@ -13,18 +13,16 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
-import tqs.assign.api.Api;
 import tqs.assign.api.ApiQuery;
 import tqs.assign.api.CovidApi;
 import tqs.assign.api.CovidCache;
-import tqs.assign.api.external.Covid19Api;
-import tqs.assign.api.external.VaccovidApi;
+import tqs.assign.api.external.Covid19FastestUpdateApi;
+import tqs.assign.api.external.JohnsHopkinsApi;
 import tqs.assign.data.CacheStats;
 import tqs.assign.data.ResponseData;
 import tqs.assign.data.Stats;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -47,9 +45,9 @@ class CovidIntegrationTest {
     private CovidApi covidApi;
 
     @MockBean
-    private VaccovidApi vaccovidApi;
+    private JohnsHopkinsApi johnsHopkinsApi;
     @MockBean
-    private Covid19Api covid19Api;
+    private Covid19FastestUpdateApi covid19FastestUpdateApi;
 
     private final Map<ApiQuery, ApiQueryInfo> queryResponses = Map.of(
             ApiQuery.builder().build(), new ApiQueryInfo("/api/covid/stats"),
@@ -85,8 +83,8 @@ class CovidIntegrationTest {
 
         Set<String> supportedCountries = Set.of("PT", "GB");
 
-        when(vaccovidApi.getSupportedCountries()).thenReturn(supportedCountries);
-        when(covid19Api.getSupportedCountries()).thenReturn(supportedCountries);
+        when(johnsHopkinsApi.getSupportedCountries()).thenReturn(supportedCountries);
+        when(covid19FastestUpdateApi.getSupportedCountries()).thenReturn(supportedCountries);
         ReflectionTestUtils.setField(covidApi, "supportedCountries", supportedCountries);
     }
 
@@ -132,8 +130,8 @@ class CovidIntegrationTest {
 
 
     private void registerQueryResponse(ApiQuery query, Stats response) {
-        when(vaccovidApi.getStats(query)).thenReturn(response);
-        when(covid19Api.getStats(query)).thenReturn(response);
+        when(johnsHopkinsApi.getStats(query)).thenReturn(response);
+        when(covid19FastestUpdateApi.getStats(query)).thenReturn(response);
     }
 
 }

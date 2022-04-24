@@ -24,18 +24,18 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
-public class Covid19Api implements Api {
+public class Covid19FastestUpdateApi implements Api {
 
     public static final String BASE_URL = "https://api.covid19api.com";
+
+    private final WebClient webClient;
 
     private Set<Covid19Country> countries;
     private Map<String, Covid19Country> countriesIsoMap;
 
-    private WebClient webClient;
 
 
-
-    public Covid19Api(String baseUrl) {
+    public Covid19FastestUpdateApi(String baseUrl) {
         webClient = WebClient.builder()
                 .baseUrl(baseUrl)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -60,7 +60,7 @@ public class Covid19Api implements Api {
         }
     }
 
-    public Covid19Api() {
+    public Covid19FastestUpdateApi() {
         this(BASE_URL);
     }
 
@@ -123,6 +123,7 @@ public class Covid19Api implements Api {
                 last.getRecovered(),
                 last.getRecovered() - first.getRecovered(),
                 Stats.UNSUPPORTED_FIELD,
+                Stats.UNSUPPORTED_FIELD,
                 ((double) last.getDeaths() / last.getConfirmed()) * 100);
     }
 
@@ -151,6 +152,7 @@ public class Covid19Api implements Api {
                 last.getRecovered(),
                 last.getRecovered() - first.getRecovered(),
                 last.getActive(),
+                last.getActive() - first.getActive(),
                 ((double) last.getDeaths() / last.getConfirmed()) * 100);
     }
 
@@ -165,8 +167,8 @@ public class Covid19Api implements Api {
         @JsonCreator
         public Covid19Country(
                 @JsonProperty("Country") String country,
-                 @JsonProperty("Slug") String slug,
-                 @JsonProperty("ISO2") String iso2) {
+                @JsonProperty("Slug") String slug,
+                @JsonProperty("ISO2") String iso2) {
             this.country = country;
             this.slug = slug;
             this.iso2 = iso2;

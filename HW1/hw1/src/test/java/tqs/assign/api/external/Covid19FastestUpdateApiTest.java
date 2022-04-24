@@ -5,7 +5,6 @@ import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.jupiter.api.*;
-import tqs.assign.TestUtils;
 import tqs.assign.api.ApiQuery;
 import tqs.assign.data.Stats;
 import tqs.assign.exceptions.UnavailableExternalApiException;
@@ -16,19 +15,21 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-import static tqs.assign.api.external.Covid19Api.Covid19Country;
-import static tqs.assign.api.external.Covid19Api.Covid19CountryStats;
-import static tqs.assign.api.external.Covid19Api.Covid19WorldStats;
+import static tqs.assign.api.external.Covid19FastestUpdateApi.Covid19Country;
+import static tqs.assign.api.external.Covid19FastestUpdateApi.Covid19CountryStats;
+import static tqs.assign.api.external.Covid19FastestUpdateApi.Covid19WorldStats;
+import static tqs.assign.Utils.gson;
 
-class Covid19ApiTest {
+class Covid19FastestUpdateApiTest {
 
     public static MockWebServer mockWebServer;
 
-    private Covid19Api covid19Api;
+    private Covid19FastestUpdateApi covid19FastestUpdateApi;
 
     private Set<Covid19Country> countries;
 
@@ -44,13 +45,14 @@ class Covid19ApiTest {
         countries = Set.of(countryPT, countryGB);
 
         mockWebServer.enqueue(new MockResponse()
-                .setBody( TestUtils.gson.toJson(countries) )
+                .setBody( gson.toJson(countries) )
                 .addHeader("Content-Type", "application/json"));
 
         String baseUrl = "http://localhost:" + mockWebServer.getPort();
-        covid19Api = new Covid19Api(baseUrl);
+        covid19FastestUpdateApi = new Covid19FastestUpdateApi(baseUrl);
 
-        RecordedRequest request = mockWebServer.takeRequest();
+        RecordedRequest request = mockWebServer.takeRequest(5, TimeUnit.SECONDS);
+        assertNotNull(request);
         assertEquals("/countries", request.getPath());
     }
 
@@ -66,7 +68,7 @@ class Covid19ApiTest {
     void whenGetSupportedCountries_thenGetSupportedCountries() {
         assertEquals(
                 countries.stream().map(Covid19Country::getIso2).collect(Collectors.toSet()),
-                covid19Api.getSupportedCountries());
+                covid19FastestUpdateApi.getSupportedCountries());
     }
 
     @Test
@@ -78,14 +80,15 @@ class Covid19ApiTest {
                 439552778, 3187196,
                 5968058, 16065,
                 0, 0,
-                -1, ((double) 5968058/439552778)*100
+                Stats.UNSUPPORTED_FIELD, Stats.UNSUPPORTED_FIELD,
+                ((double) 5968058/439552778)*100
         );
 
         mockWebServer.enqueue(new MockResponse()
                 .setBody(responseBody)
                 .addHeader("Content-Type", "application/json"));
 
-        assertEquals(responseStats, covid19Api.getStats(ApiQuery.builder().build()));
+        assertEquals(responseStats, covid19FastestUpdateApi.getStats(ApiQuery.builder().build()));
     }
 
     @Test
@@ -102,7 +105,7 @@ class Covid19ApiTest {
         );
 
         mockWebServer.enqueue(new MockResponse()
-                .setBody( TestUtils.gson.toJson(resultsWorld) )
+                .setBody( gson.toJson(resultsWorld) )
                 .addHeader("Content-Type", "application/json"));
 
         Covid19WorldStats lastWorld = resultsWorld.get(resultsWorld.size() - 1);
@@ -114,15 +117,16 @@ class Covid19ApiTest {
                         lastWorld.getDeaths() - firstWorld.getDeaths(),
                         lastWorld.getRecovered(),
                         lastWorld.getRecovered() - firstWorld.getRecovered(),
-                        Stats.UNSUPPORTED_FIELD,
+                        Stats.UNSUPPORTED_FIELD, Stats.UNSUPPORTED_FIELD,
                         ((double) lastWorld.getDeaths() / lastWorld.getConfirmed()) * 100
-            ), covid19Api.getStats(ApiQuery.builder()
+            ), covid19FastestUpdateApi.getStats(ApiQuery.builder()
                     .before(LocalDate.of(2021, 12, 12))
                     .atDate(LocalDate.of(2021, 2, 1))
                     .build())
         );
 
-        RecordedRequest request = mockWebServer.takeRequest();
+        RecordedRequest request = mockWebServer.takeRequest(5, TimeUnit.SECONDS);
+        assertNotNull(request);
         HttpUrl httpUrl = request.getRequestUrl();
         assertNotNull(httpUrl);
         assertEquals("/world", httpUrl.encodedPath());
@@ -151,7 +155,7 @@ class Covid19ApiTest {
         );
 
         mockWebServer.enqueue(new MockResponse()
-                .setBody( TestUtils.gson.toJson(resultsCountry) )
+                .setBody( gson.toJson(resultsCountry) )
                 .addHeader("Content-Type", "application/json"));
 
         Covid19CountryStats lastCountry = resultsCountry.get(resultsCountry.size() - 1);
@@ -164,15 +168,17 @@ class Covid19ApiTest {
                         lastCountry.getRecovered(),
                         lastCountry.getRecovered() - firstCountry.getRecovered(),
                         lastCountry.getActive(),
+                        lastCountry.getActive() - firstCountry.getActive(),
                         ((double) lastCountry.getDeaths() / lastCountry.getConfirmed()) * 100
-                ), covid19Api.getStats(ApiQuery.builder()
+                ), covid19FastestUpdateApi.getStats(ApiQuery.builder()
                         .atCountry("PT")
                         .after(LocalDate.of(2021, 1, 29))
                         .before(LocalDate.of(2021, 2, 1))
                         .build())
         );
 
-        request = mockWebServer.takeRequest();
+        request = mockWebServer.takeRequest(5, TimeUnit.SECONDS);
+        assertNotNull(request);
         httpUrl = request.getRequestUrl();
         assertNotNull(httpUrl);
         assertEquals("/country/portugal", httpUrl.encodedPath());
@@ -186,10 +192,10 @@ class Covid19ApiTest {
         ApiQuery worldQuery = ApiQuery.builder().build();
 
         mockWebServer.enqueue(new MockResponse()
-                .setBody( TestUtils.gson.toJson(Collections.emptyList()) )
+                .setBody( gson.toJson(Collections.emptyList()) )
                 .addHeader("Content-Type", "application/json"));
 
-        assertThrows(UnavailableExternalApiException.class, () -> covid19Api.getStats(worldQuery));
+        assertThrows(UnavailableExternalApiException.class, () -> covid19FastestUpdateApi.getStats(worldQuery));
     }
 
     @Test
@@ -203,7 +209,8 @@ class Covid19ApiTest {
                 100, 10,
                 20, 5,
                 200, 17,
-                Stats.UNSUPPORTED_FIELD, 20
+                Stats.UNSUPPORTED_FIELD, Stats.UNSUPPORTED_FIELD,
+                20
         );
         List<Covid19WorldStats> externalResponseAtDate = List.of(
                 new Covid19WorldStats(90, 15, 183, LocalDateTime.of(dateAt.minusDays(1L), LocalTime.MIN)),
@@ -213,7 +220,8 @@ class Covid19ApiTest {
                 550, 42,
                 55, 10,
                 221, 54,
-                Stats.UNSUPPORTED_FIELD, 10
+                Stats.UNSUPPORTED_FIELD, Stats.UNSUPPORTED_FIELD,
+                10
         );
         List<Covid19WorldStats> externalResponseAtRange = List.of(
                 new Covid19WorldStats(508, 45, 167, LocalDateTime.of(dateAfter, LocalTime.MIN)),
@@ -225,7 +233,7 @@ class Covid19ApiTest {
                 .atDate(dateAt)
                 .build();
         mockWebServer.enqueue(new MockResponse()
-                .setBody( TestUtils.gson.toJson(externalResponseAtDate) )
+                .setBody( gson.toJson(externalResponseAtDate) )
                 .addHeader("Content-Type", "application/json"));
 
         ApiQuery queryBoth = ApiQuery.builder()
@@ -234,7 +242,7 @@ class Covid19ApiTest {
                 .after(dateAfter)
                 .build();
         mockWebServer.enqueue(new MockResponse()
-                .setBody( TestUtils.gson.toJson(externalResponseAtDate) )
+                .setBody( gson.toJson(externalResponseAtDate) )
                 .addHeader("Content-Type", "application/json"));
 
         ApiQuery queryAtRange = ApiQuery.builder()
@@ -242,7 +250,7 @@ class Covid19ApiTest {
                 .before(dateBefore)
                 .build();
         mockWebServer.enqueue(new MockResponse()
-                .setBody( TestUtils.gson.toJson(externalResponseAtRange) )
+                .setBody( gson.toJson(externalResponseAtRange) )
                 .addHeader("Content-Type", "application/json"));
 
         checkCorrectRequestWithDateParameters(queryAtDate, responseAtDate, dateAt.minusDays(1L), dateAt, mockWebServer);
@@ -257,8 +265,9 @@ class Covid19ApiTest {
     private void checkCorrectRequestWithDateParameters(ApiQuery query, Stats response,
                                                        LocalDate requestFromDate, LocalDate requestToDate,
                                                        MockWebServer mockWebServer) throws InterruptedException {
-        assertEquals(response, covid19Api.getStats(query));
-        RecordedRequest request = mockWebServer.takeRequest();
+        assertEquals(response, covid19FastestUpdateApi.getStats(query));
+        RecordedRequest request = mockWebServer.takeRequest(5, TimeUnit.SECONDS);
+        assertNotNull(request);
         HttpUrl httpUrl = request.getRequestUrl();
         assertNotNull(httpUrl);
         assertThat(httpUrl.queryParameterNames()).contains("from", "to");
