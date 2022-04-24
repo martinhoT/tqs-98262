@@ -1,5 +1,6 @@
 package tqs.assign.controller;
 
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import tqs.assign.api.ApiQuery;
@@ -12,6 +13,7 @@ import java.util.Set;
 
 @RestController
 @RequestMapping("/api/covid")
+@Log4j2
 public class CovidController {
 
     private final CovidApi covidApi;
@@ -32,7 +34,10 @@ public class CovidController {
         after.ifPresent(apiQueryBuilder::after);
         before.ifPresent(apiQueryBuilder::before);
 
-        return covidApi.getStats(apiQueryBuilder.build());
+        ApiQuery query = apiQueryBuilder.build();
+
+        log.info("Received stats query: {}", query);
+        return covidApi.getStats(query);
     }
 
     @GetMapping("/countries")

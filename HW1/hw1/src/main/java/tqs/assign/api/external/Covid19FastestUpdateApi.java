@@ -83,7 +83,7 @@ public class Covid19FastestUpdateApi implements Api {
 
         String atCountry = query.getAtCountry();
         if (atCountry == null)
-            return queryAtWorld(queryParams);
+            throw new UnavailableExternalApiException();
         return queryAtCountry(countriesIsoMap.get(atCountry).getSlug(), queryParams);
     }
 
@@ -98,6 +98,7 @@ public class Covid19FastestUpdateApi implements Api {
         return localDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
     }
 
+    // The endpoint is a WIP, and is missing some data
     private Stats queryAtWorld(MultiValueMap<String, String> queryParams) {
         Optional<List<Covid19WorldStats>> covid19StatsListOptional = webClient.get()
                 .uri(uriBuilder -> uriBuilder

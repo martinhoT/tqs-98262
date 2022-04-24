@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Covid stats</title>
+</head>
+<body>
+
+    <h1>Covid stats</h1>
+
+    <div th:object="${stats}">
+        <h3>Confirmed</h3>
+        <p th:text="|*{confirmed} (+*{newConfirmed})|">?</p>
+
+        <h3>Deaths</h3>
+        <p th:text="|*{deaths} (+*{newDeaths})|">?</p>
+
+        <h3>Recovered</h3>
+        <p th:text="|*{recovered} (+*{newRecovered})|">?</p>
+
+        <h3>Active</h3>
+        <p th:text="|*{active} (+*{newActive})|">?</p>
+
+        <h3>Fatality rate</h3>
+        <p th:text="*{fatalityRate}">?</p>
+    </div>
+
+    <a th:href="@{/}">
+        <button>Go back</button>
+    </a>
+
+</body>
+</html>

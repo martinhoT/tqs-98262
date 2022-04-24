@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cache stats</title>
+</head>
+<body>
+
+    <h1>Cache stats</h1>
+
+    <div th:object="${stats}">
+        <h3>Hits</h3>
+        <p th:text="*{hits}">?</p>
+
+        <h3>Misses</h3>
+        <p th:text="*{misses}">?</p>
+
+        <h3>Stored</h3>
+        <p th:text="*{stored}">?</p>
+
+        <h3>Time to live (s)</h3>
+        <p th:text="*{ttl}">?</p>
+    </div>
+
+
+    <a th:href="@{/}">
+        <button>Go back</button>
+    </a>
+
+</body>
+</html>

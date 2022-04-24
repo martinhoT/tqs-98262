@@ -31,9 +31,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static tqs.assign.Utils.gson;
@@ -50,8 +48,8 @@ public class JohnsHopkinsApi implements Api {
     private final WebClient webClient;
 
     private final Set<JohnsHopkinsCountry> countries;
-
     private boolean unauthorized;
+    private Map<String, String> iso3ToIso2Map;
 
 
 
@@ -84,6 +82,13 @@ public class JohnsHopkinsApi implements Api {
             jsonRoot.getAsJsonArray("data").forEach(
                     jElem -> countries.add(gson.fromJson(jElem, JohnsHopkinsCountry.class))
             );
+        }
+
+        String[] iso2Countries = Locale.getISOCountries();
+        iso3ToIso2Map = new HashMap<>(iso2Countries.length);
+        for (String iso2 : iso2Countries) {
+            Locale locale = new Locale("", iso2);
+            iso3ToIso2Map.put(locale.getISO3Country().toUpperCase(), iso2);
         }
     }
 
@@ -142,7 +147,10 @@ public class JohnsHopkinsApi implements Api {
 
     @Override
     public Set<String> getSupportedCountries() {
-        return countries.stream().map(JohnsHopkinsCountry::getIso).collect(Collectors.toSet());
+        return countries.stream()
+                .map(JohnsHopkinsCountry::getIso)
+                .map(iso3ToIso2Map::get)
+                .collect(Collectors.toSet());
     }
 
 

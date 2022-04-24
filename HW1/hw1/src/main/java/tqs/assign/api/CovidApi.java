@@ -17,6 +17,7 @@ import tqs.assign.exceptions.UnsupportedCountryISOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Proxy bean that alternates between external APIs based on availability.
@@ -26,7 +27,7 @@ import java.util.Set;
 public class CovidApi implements Api {
 
     private final List<Api> supportedApis;
-    @Getter private final Set<String> supportedCountries;
+    @Getter private Set<String> supportedCountries;
     private int chosenApiIdx;
 
     private final CovidCache covidCache;
@@ -42,14 +43,10 @@ public class CovidApi implements Api {
         );
         chosenApiIdx = 0;
 
-        Set<String> firstSupportedCountries = supportedApis.get(0).getSupportedCountries();
-        if (firstSupportedCountries != null)
-            supportedCountries = supportedApis.stream()
-                    .skip(1L)
-                    .map(Api::getSupportedCountries)
-                    .collect(() -> new HashSet<>(firstSupportedCountries), Set::retainAll, Set::retainAll);
-        else
-            supportedCountries = new HashSet<>();
+        supportedCountries = new HashSet<>();
+        supportedApis.stream()
+                .map(Api::getSupportedCountries)
+                .forEach(supportedCountries::addAll);
 
         this.covidCache = covidCache;
 
