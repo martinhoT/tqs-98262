@@ -10,7 +10,7 @@ import tqs.assign.exceptions.NoCachedElementException;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 @Component
 public class CovidCache {
@@ -49,14 +49,14 @@ public class CovidCache {
      * This is the method that should be called for normal cache use.
      *
      * @param apiQuery the API query
-     * @param responseDataSupplier the supplier that will produce the updated response in case the one for the specified
+     * @param responseDataProvider the supplier that will produce the updated response in case the one for the specified
      *                             API query is stale
      * @return the response that is cached for this API query
      */
-    public ResponseData getOrStore(ApiQuery apiQuery, Supplier<ResponseData> responseDataSupplier) {
+    public ResponseData getOrStore(ApiQuery apiQuery, Function<ApiQuery, ResponseData> responseDataProvider) {
         if (stale(apiQuery)) {
             misses++;
-            ResponseData response = responseDataSupplier.get();
+            ResponseData response = responseDataProvider.apply(apiQuery);
             store(apiQuery, response);
             return response;
         }
@@ -66,6 +66,16 @@ public class CovidCache {
 
     public CacheStats statsSnapshot() {
         return new CacheStats(hits, misses, cache.size(), ttl);
+    }
+
+    public void clear() {
+        cache.clear();
+        timestamps.clear();
+    }
+
+    public void resetStats() {
+        hits = 0;
+        misses = 0;
     }
 
 }

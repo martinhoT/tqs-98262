@@ -5,9 +5,7 @@ import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.jupiter.api.*;
-import org.mockito.Mock;
 import tqs.assign.TestUtils;
-import tqs.assign.api.Api;
 import tqs.assign.api.ApiQuery;
 import tqs.assign.data.Stats;
 import tqs.assign.exceptions.UnavailableExternalApiException;
@@ -22,9 +20,9 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
 import static tqs.assign.api.external.Covid19Api.Covid19Country;
-import static tqs.assign.api.external.Covid19Api.Covid19Stats;
+import static tqs.assign.api.external.Covid19Api.Covid19CountryStats;
+import static tqs.assign.api.external.Covid19Api.Covid19WorldStats;
 
 class Covid19ApiTest {
 
@@ -36,19 +34,11 @@ class Covid19ApiTest {
 
 
 
-    @BeforeAll
-    static void setUpAll() throws IOException {
+    @BeforeEach
+    void setUp() throws InterruptedException, IOException {
         mockWebServer = new MockWebServer();
         mockWebServer.start();
-    }
 
-    @AfterAll
-    static void tearDownAll() throws IOException {
-        mockWebServer.close();
-    }
-
-    @BeforeEach
-    void setUp() throws InterruptedException {
         Covid19Country countryPT = new Covid19Country("Portugal", "portugal", "PT");
         Covid19Country countryGB = new Covid19Country("Great Britain", "great-britain", "GB");
         countries = Set.of(countryPT, countryGB);
@@ -64,6 +54,11 @@ class Covid19ApiTest {
         assertEquals("/countries", request.getPath());
     }
 
+    @AfterEach
+    void tearDown() throws IOException {
+        mockWebServer.close();
+    }
+
 
 
     @Test
@@ -75,63 +70,80 @@ class Covid19ApiTest {
     }
 
     @Test
+    @DisplayName("Test conversion from example JSON response")
+    void whenObtainJSONResponse_thenSuccessfullyConvert() {
+        String responseBody = "[{\"NewConfirmed\":744386,\"TotalConfirmed\":436365582,\"NewDeaths\":4808,\"TotalDeaths\":5951993,\"NewRecovered\":0,\"TotalRecovered\":0,\"Date\":\"2022-03-01T21:50:39.652Z\"},{\"NewConfirmed\":655339,\"TotalConfirmed\":437900927,\"NewDeaths\":5450,\"TotalDeaths\":5960298,\"NewRecovered\":0,\"TotalRecovered\":0,\"Date\":\"2022-03-02T22:00:35.19Z\"},{\"NewConfirmed\":779149,\"TotalConfirmed\":439552778,\"NewDeaths\":5031,\"TotalDeaths\":5968058,\"NewRecovered\":0,\"TotalRecovered\":0,\"Date\":\"2022-03-03T22:08:17.177Z\"}]";
+
+        Stats responseStats = new Stats(
+                439552778, 3187196,
+                5968058, 16065,
+                0, 0,
+                -1, ((double) 5968058/439552778)*100
+        );
+
+        mockWebServer.enqueue(new MockResponse()
+                .setBody(responseBody)
+                .addHeader("Content-Type", "application/json"));
+
+        assertEquals(responseStats, covid19Api.getStats(ApiQuery.builder().build()));
+    }
+
+    @Test
     @DisplayName("Get stats with filtering by parameters")
     void whenGetStatsWithParams_thenReturnCorrectStats() throws InterruptedException {
-        List<Covid19Stats> results = List.of(
-                new Covid19Stats(
-                        "World", "-",
-                        521, 25, 26, 36,
+        List<Covid19WorldStats> resultsWorld = List.of(
+                new Covid19WorldStats(
+                        521, 25, 26,
                         LocalDateTime.of(LocalDate.of(2021, 1, 31), LocalTime.MIN)),
-                new Covid19Stats(
-                        "World", "-",
-                        532, 55, 42, 36,
+                new Covid19WorldStats(
+                        532, 55, 42,
                         LocalDateTime.of(LocalDate.of(2021, 2, 1), LocalTime.MIN)
                 )
         );
 
         mockWebServer.enqueue(new MockResponse()
-                .setBody( TestUtils.gson.toJson(results) )
+                .setBody( TestUtils.gson.toJson(resultsWorld) )
                 .addHeader("Content-Type", "application/json"));
 
-        Covid19Stats last = results.get(results.size() - 1);
-        Covid19Stats first = results.get(0);
+        Covid19WorldStats lastWorld = resultsWorld.get(resultsWorld.size() - 1);
+        Covid19WorldStats firstWorld = resultsWorld.get(0);
         assertEquals(new Stats(
-                last.getConfirmed(),
-                last.getConfirmed() - first.getConfirmed(),
-                last.getDeaths(),
-                last.getDeaths() - first.getDeaths(),
-                last.getRecovered(),
-                last.getRecovered() - first.getRecovered(),
-                last.getActive(),
-                ((double) last.getDeaths() / last.getConfirmed()) * 100
-        ), covid19Api.getStats(ApiQuery.builder()
-                .before(LocalDate.of(2021, 12, 12))
-                .atDate(LocalDate.of(2021, 2, 1))
-                .build())
+                        lastWorld.getConfirmed(),
+                        lastWorld.getConfirmed() - firstWorld.getConfirmed(),
+                        lastWorld.getDeaths(),
+                        lastWorld.getDeaths() - firstWorld.getDeaths(),
+                        lastWorld.getRecovered(),
+                        lastWorld.getRecovered() - firstWorld.getRecovered(),
+                        Stats.UNSUPPORTED_FIELD,
+                        ((double) lastWorld.getDeaths() / lastWorld.getConfirmed()) * 100
+            ), covid19Api.getStats(ApiQuery.builder()
+                    .before(LocalDate.of(2021, 12, 12))
+                    .atDate(LocalDate.of(2021, 2, 1))
+                    .build())
         );
 
         RecordedRequest request = mockWebServer.takeRequest();
         HttpUrl httpUrl = request.getRequestUrl();
         assertNotNull(httpUrl);
         assertEquals("/world", httpUrl.encodedPath());
-        assertEquals("2021-01-31T00:00:00", httpUrl.queryParameter("from"));
-        assertEquals("2021-02-01T00:00:00", httpUrl.queryParameter("to"));
+        assertEquals("2021-01-31", httpUrl.queryParameter("from"));
+        assertEquals("2021-02-01", httpUrl.queryParameter("to"));
 
 
-        results = List.of(
-                new Covid19Stats(
+        List<Covid19CountryStats> resultsCountry = List.of(
+                new Covid19CountryStats(
                         "Portugal", "-",
                         300, 19, 20, 20,
                         LocalDateTime.of(LocalDate.of(2021, 1, 29), LocalTime.MIN)),
-                new Covid19Stats(
+                new Covid19CountryStats(
                         "Portugal", "-",
                         400, 20, 23, 30,
                         LocalDateTime.of(LocalDate.of(2021, 1, 30), LocalTime.MIN)),
-                new Covid19Stats(
+                new Covid19CountryStats(
                         "Portugal", "-",
                         521, 25, 26, 36,
                         LocalDateTime.of(LocalDate.of(2021, 1, 31), LocalTime.MIN)),
-                new Covid19Stats(
+                new Covid19CountryStats(
                         "Portugal", "-",
                         532, 55, 42, 36,
                         LocalDateTime.of(LocalDate.of(2021, 2, 1), LocalTime.MIN)
@@ -139,20 +151,20 @@ class Covid19ApiTest {
         );
 
         mockWebServer.enqueue(new MockResponse()
-                .setBody( TestUtils.gson.toJson(results) )
+                .setBody( TestUtils.gson.toJson(resultsCountry) )
                 .addHeader("Content-Type", "application/json"));
 
-        last = results.get(results.size() - 1);
-        first = results.get(0);
+        Covid19CountryStats lastCountry = resultsCountry.get(resultsCountry.size() - 1);
+        Covid19CountryStats firstCountry = resultsCountry.get(0);
         assertEquals(new Stats(
-                        last.getConfirmed(),
-                        last.getConfirmed() - first.getConfirmed(),
-                        last.getDeaths(),
-                        last.getDeaths() - first.getDeaths(),
-                        last.getRecovered(),
-                        last.getRecovered() - first.getRecovered(),
-                        last.getActive(),
-                        ((double) last.getDeaths() / last.getConfirmed()) * 100
+                        lastCountry.getConfirmed(),
+                        lastCountry.getConfirmed() - firstCountry.getConfirmed(),
+                        lastCountry.getDeaths(),
+                        lastCountry.getDeaths() - firstCountry.getDeaths(),
+                        lastCountry.getRecovered(),
+                        lastCountry.getRecovered() - firstCountry.getRecovered(),
+                        lastCountry.getActive(),
+                        ((double) lastCountry.getDeaths() / lastCountry.getConfirmed()) * 100
                 ), covid19Api.getStats(ApiQuery.builder()
                         .atCountry("PT")
                         .after(LocalDate.of(2021, 1, 29))
@@ -164,8 +176,8 @@ class Covid19ApiTest {
         httpUrl = request.getRequestUrl();
         assertNotNull(httpUrl);
         assertEquals("/country/portugal", httpUrl.encodedPath());
-        assertEquals("2021-01-29T00:00:00", httpUrl.queryParameter("from"));
-        assertEquals("2021-02-01T00:00:00", httpUrl.queryParameter("to"));
+        assertEquals("2021-01-29", httpUrl.queryParameter("from"));
+        assertEquals("2021-02-01", httpUrl.queryParameter("to"));
     }
 
     @Test
@@ -185,16 +197,36 @@ class Covid19ApiTest {
     void whenGetStatsAtDateAndRange_thenPrioritizeAtDate() throws Exception {
         LocalDate dateAt = LocalDate.of(2022, 1, 1);
         LocalDate dateBefore = LocalDate.of(2022, 2, 2);
-        LocalDate dateAfter = LocalDate.of(2021, 1, 1);
+        LocalDate dateAfter = LocalDate.of(2022, 1, 31);
 
-        Stats responseAtDate = TestUtils.randomStats();
-        Stats responseAtRange = TestUtils.randomStats();
+        Stats responseAtDate = new Stats(
+                100, 10,
+                20, 5,
+                200, 17,
+                Stats.UNSUPPORTED_FIELD, 20
+        );
+        List<Covid19WorldStats> externalResponseAtDate = List.of(
+                new Covid19WorldStats(90, 15, 183, LocalDateTime.of(dateAt.minusDays(1L), LocalTime.MIN)),
+                new Covid19WorldStats(100, 20, 200, LocalDateTime.of(dateAt, LocalTime.MIN))
+        );
+        Stats responseAtRange = new Stats(
+                550, 42,
+                55, 10,
+                221, 54,
+                Stats.UNSUPPORTED_FIELD, 10
+        );
+        List<Covid19WorldStats> externalResponseAtRange = List.of(
+                new Covid19WorldStats(508, 45, 167, LocalDateTime.of(dateAfter, LocalTime.MIN)),
+                new Covid19WorldStats(525, 50, 200, LocalDateTime.of(dateAfter.plusDays(1L), LocalTime.MIN)),
+                new Covid19WorldStats(550, 55, 221, LocalDateTime.of(dateBefore, LocalTime.MIN))
+        );
 
         ApiQuery queryAtDate = ApiQuery.builder()
                 .atDate(dateAt)
                 .build();
         mockWebServer.enqueue(new MockResponse()
-                .setBody( TestUtils.gson.toJson(List.of(responseAtDate)) ));
+                .setBody( TestUtils.gson.toJson(externalResponseAtDate) )
+                .addHeader("Content-Type", "application/json"));
 
         ApiQuery queryBoth = ApiQuery.builder()
                 .atDate(dateAt)
@@ -202,43 +234,37 @@ class Covid19ApiTest {
                 .after(dateAfter)
                 .build();
         mockWebServer.enqueue(new MockResponse()
-                .setBody( TestUtils.gson.toJson(List.of(responseAtDate)) ));
+                .setBody( TestUtils.gson.toJson(externalResponseAtDate) )
+                .addHeader("Content-Type", "application/json"));
 
         ApiQuery queryAtRange = ApiQuery.builder()
                 .after(dateAfter)
                 .before(dateBefore)
                 .build();
         mockWebServer.enqueue(new MockResponse()
-                .setBody( TestUtils.gson.toJson(List.of(responseAtRange)) ));
+                .setBody( TestUtils.gson.toJson(externalResponseAtRange) )
+                .addHeader("Content-Type", "application/json"));
 
-        assertEquals(responseAtDate, covid19Api.getStats(queryAtDate));
+        checkCorrectRequestWithDateParameters(queryAtDate, responseAtDate, dateAt.minusDays(1L), dateAt, mockWebServer);
+
+        checkCorrectRequestWithDateParameters(queryBoth, responseAtDate, dateAt.minusDays(1L), dateAt, mockWebServer);
+
+        checkCorrectRequestWithDateParameters(queryAtRange, responseAtRange, dateAfter, dateBefore, mockWebServer);
+    }
+
+
+
+    private void checkCorrectRequestWithDateParameters(ApiQuery query, Stats response,
+                                                       LocalDate requestFromDate, LocalDate requestToDate,
+                                                       MockWebServer mockWebServer) throws InterruptedException {
+        assertEquals(response, covid19Api.getStats(query));
         RecordedRequest request = mockWebServer.takeRequest();
         HttpUrl httpUrl = request.getRequestUrl();
         assertNotNull(httpUrl);
         assertThat(httpUrl.queryParameterNames()).contains("from", "to");
-        assertEquals(dateAt.minusDays(1L).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+        assertEquals(requestFromDate.format(DateTimeFormatter.ISO_LOCAL_DATE),
                 httpUrl.queryParameter("from"));
-        assertEquals(dateAt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                httpUrl.queryParameter("to"));
-
-        assertEquals(responseAtDate, covid19Api.getStats(queryBoth));
-        request = mockWebServer.takeRequest();
-        httpUrl = request.getRequestUrl();
-        assertNotNull(httpUrl);
-        assertThat(httpUrl.queryParameterNames()).contains("from", "to");
-        assertEquals(dateAt.minusDays(1L).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                httpUrl.queryParameter("from"));
-        assertEquals(dateAt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                httpUrl.queryParameter("to"));
-
-        assertEquals(responseAtRange, covid19Api.getStats(queryAtRange));
-        request = mockWebServer.takeRequest();
-        httpUrl = request.getRequestUrl();
-        assertNotNull(httpUrl);
-        assertThat(httpUrl.queryParameterNames()).contains("from", "to");
-        assertEquals(dateAfter.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-                httpUrl.queryParameter("from"));
-        assertEquals(dateBefore.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+        assertEquals(requestToDate.format(DateTimeFormatter.ISO_LOCAL_DATE),
                 httpUrl.queryParameter("to"));
     }
 

@@ -1,11 +1,15 @@
 package tqs.assign.api;
 
 import lombok.Getter;
+import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tqs.assign.api.external.Covid19Api;
 import tqs.assign.api.external.VaccovidApi;
 import tqs.assign.data.CacheStats;
+import tqs.assign.data.NullStats;
+import tqs.assign.data.ResponseData;
 import tqs.assign.data.Stats;
 import tqs.assign.exceptions.IncorrectlyFormattedCountryException;
 import tqs.assign.exceptions.UnavailableApiException;
@@ -20,6 +24,7 @@ import java.util.Set;
  * Proxy bean that alternates between 2 external APIs based on availability.
  */
 @Service
+@Log4j2
 public class CovidApi implements Api {
 
     private final List<Api> supportedApis;
@@ -57,7 +62,17 @@ public class CovidApi implements Api {
         if (query.getAtCountry() != null)
             validateCountryIso(query.getAtCountry());
 
-        Stats response = null;
+        return (Stats) covidCache.getOrStore(query, this::queryApis);
+    }
+
+    public CacheStats getCacheStats() {
+        return covidCache.statsSnapshot();
+    }
+
+
+
+    private Stats queryApis(ApiQuery query) throws UnavailableApiException {
+        Stats response = new NullStats();
         int initialApiIdx = chosenApiIdx;
         do {
             Api chosenApi = supportedApis.get(chosenApiIdx);
@@ -66,16 +81,12 @@ public class CovidApi implements Api {
             } catch (UnavailableExternalApiException ex) {
                 chosenApiIdx = (++chosenApiIdx) % supportedApis.size();
             }
-        } while (response == null && initialApiIdx != chosenApiIdx);
+        } while (response.isNull() && initialApiIdx != chosenApiIdx);
 
-        if (response == null)
+        if (response.isNull())
             throw new UnavailableApiException();
 
         return response;
-    }
-
-    public CacheStats getCacheStats() {
-        return covidCache.statsSnapshot();
     }
 
     private void validateCountryIso(String countryISO) {

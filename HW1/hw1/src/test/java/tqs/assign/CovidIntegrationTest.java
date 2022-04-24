@@ -1,7 +1,9 @@
 package tqs.assign;
 
 import lombok.Getter;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,7 +12,10 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.util.ReflectionTestUtils;
+import tqs.assign.api.Api;
 import tqs.assign.api.ApiQuery;
+import tqs.assign.api.CovidApi;
 import tqs.assign.api.CovidCache;
 import tqs.assign.api.external.Covid19Api;
 import tqs.assign.api.external.VaccovidApi;
@@ -19,6 +24,7 @@ import tqs.assign.data.ResponseData;
 import tqs.assign.data.Stats;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -37,6 +43,9 @@ class CovidIntegrationTest {
     @Autowired
     private CovidCache covidCache;
 
+    @Autowired
+    private CovidApi covidApi;
+
     @MockBean
     private VaccovidApi vaccovidApi;
     @MockBean
@@ -53,7 +62,7 @@ class CovidIntegrationTest {
             ApiQuery.builder()
                     .before(LocalDate.of(2022, 1, 1).plusDays(3))
                     .atCountry("PT")
-                    .build(), new ApiQueryInfo("/api/covid/stats?before=%s".formatted(LocalDate.of(2022, 1, 1).plusDays(3))),
+                    .build(), new ApiQueryInfo("/api/covid/stats/PT?before=%s".formatted(LocalDate.of(2022, 1, 1).plusDays(3))),
             ApiQuery.builder()
                     .atCountry("GB")
                     .atDate(LocalDate.of(2022, 4, 1))
@@ -68,18 +77,29 @@ class CovidIntegrationTest {
         public ApiQueryInfo(String url) { response = TestUtils.randomStats(); this.requestUrl = url; }
     }
 
-    private Set<String> countries = Set.of("PT", "GB");
-
 
 
     @BeforeEach
     void setUp() {
         queryResponses.forEach((query, info) -> registerQueryResponse(query, info.getResponse()));
+
+        Set<String> supportedCountries = Set.of("PT", "GB");
+
+        when(vaccovidApi.getSupportedCountries()).thenReturn(supportedCountries);
+        when(covid19Api.getSupportedCountries()).thenReturn(supportedCountries);
+        ReflectionTestUtils.setField(covidApi, "supportedCountries", supportedCountries);
+    }
+
+    @AfterEach
+    void tearDown() {
+        covidCache.clear();
+        covidCache.resetStats();
     }
 
 
 
     @Test
+    @DisplayName("Responses are cached")
     void whenGetCovidStatsRepeatedly_thenReturnCachedCovidStats() {
         ApiQuery apiQuery = ApiQuery.builder().build();
 
@@ -100,6 +120,7 @@ class CovidIntegrationTest {
     }
 
     @Test
+    @DisplayName("Querying with parameters")
     void whenGetCovidStatsWithParams_thenReturnSpecificCovidStats() {
         queryResponses.forEach((query, info) -> {
             ResponseEntity<Stats> statsResponse = restTemplate.getForEntity(info.getRequestUrl(), Stats.class);

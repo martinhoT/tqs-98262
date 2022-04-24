@@ -5,7 +5,9 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public final class Stats implements ResponseData {
+public class Stats implements ResponseData {
+
+    public static final int UNSUPPORTED_FIELD = -1;
 
     private final int confirmed;
     private final int newConfirmed;
@@ -15,5 +17,8 @@ public final class Stats implements ResponseData {
     private final int newRecovered;
     private final int active;
     private final double fatalityRate;
+
+    @Override
+    public boolean isNull() { return false; }
 
 }

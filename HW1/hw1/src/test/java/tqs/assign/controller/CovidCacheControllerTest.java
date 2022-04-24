@@ -1,6 +1,7 @@
 package tqs.assign.controller;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -38,6 +39,7 @@ class CovidCacheControllerTest {
 
 
     @Test
+    @DisplayName("Stats endpoint")
     void whenGetStats_thenReturnStats() throws Exception {
         MvcResult result = mvc.perform(get("/api/cache/stats"))
                 .andExpect(status().isOk())

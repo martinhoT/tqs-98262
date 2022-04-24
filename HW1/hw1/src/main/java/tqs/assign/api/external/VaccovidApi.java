@@ -21,7 +21,6 @@ public class VaccovidApi implements Api {
 
     private static final String API_HOST = "vaccovid-coronavirus-vaccine-and-treatment-tracker.p.rapidapi.com";
     private static final String BASE_URL = String.format("https://%s/api/", API_HOST);
-    private static final Logger logger = LogManager.getLogger(VaccovidApi.class);
 
     @Value("rapid-api.key")
     private static String apiKey;

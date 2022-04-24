@@ -3,10 +3,12 @@ package tqs.assign.api;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 
 import java.time.LocalDate;
 
 @Getter
+@ToString
 @EqualsAndHashCode
 public class ApiQuery {
 
@@ -21,18 +23,6 @@ public class ApiQuery {
         this.after = after;
         this.before = before;
         this.atDate = atDate;
-    }
-
-    private String effectiveQueryStr;
-
-    public String effectiveQuery() {
-        if (effectiveQueryStr == null)
-            effectiveQueryStr = "getStats" +
-                    (atCountry != null ? "AtCountry" : "") +
-                    (atDate != null ? "AtDate" : "") +
-                    (after != null ? "After" : "") +
-                    (before != null ? "Before" : "");
-        return effectiveQueryStr;
     }
 
 }
