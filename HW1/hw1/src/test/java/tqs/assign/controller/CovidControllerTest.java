@@ -185,7 +185,7 @@ class CovidControllerTest {
     void whenExternalAPIsUnreachable_thenThrowUnavailableApiException() throws Exception {
         when(covidApi.getStats(any())).thenThrow(new UnavailableApiException());
 
-        String msg = "The specified resource is unavailable, since no external data providers can fulfill the request at the moment";
+        String msg = "The specified resource is unavailable, since no external data providers can fulfil the request at the moment";
 
         mvc.perform(get("/api/covid/stats"))
                 .andExpect(status().isOk())
