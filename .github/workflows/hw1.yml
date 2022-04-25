@@ -39,7 +39,6 @@ jobs:
     - name: Build and analyze
       env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-    - name: Verify with Maven
       run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=martinhoT_tqs-98262
     - name: Test report
       uses: dorny/test-reporter@v1
