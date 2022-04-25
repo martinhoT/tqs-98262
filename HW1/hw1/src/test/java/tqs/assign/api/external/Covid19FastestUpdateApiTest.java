@@ -49,7 +49,7 @@ class Covid19FastestUpdateApiTest {
                 .addHeader("Content-Type", "application/json"));
 
         String baseUrl = "http://localhost:" + mockWebServer.getPort();
-        covid19FastestUpdateApi = new Covid19FastestUpdateApi(baseUrl);
+        covid19FastestUpdateApi = new Covid19FastestUpdateApi(baseUrl, true, true);
 
         RecordedRequest request = mockWebServer.takeRequest(5, TimeUnit.SECONDS);
         assertNotNull(request);

@@ -1,6 +1,7 @@
 package tqs.assign.api;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import tqs.assign.data.CacheStats;
@@ -16,6 +17,7 @@ import java.util.function.Function;
 public class CovidCache {
 
     @Getter
+    @Setter
     @Value("${covid-cache.ttl}")
     private long ttl;
 
@@ -24,6 +26,12 @@ public class CovidCache {
 
     private final Map<ApiQuery, ResponseData> cache = new HashMap<>();
     private final Map<ApiQuery, Long> timestamps = new HashMap<>();
+
+
+
+    public CovidCache(@Value("${covid-cache.ttl}") final Long ttl) {
+        this.ttl = ttl;
+    }
 
 
 

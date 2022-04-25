@@ -5,8 +5,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import tqs.assign.api.external.Covid19FastestUpdateApi;
+import tqs.assign.api.external.JohnsHopkinsApi;
 import tqs.assign.exceptions.IncorrectlyFormattedCountryException;
 import tqs.assign.exceptions.UnsupportedCountryISOException;
 
@@ -23,11 +26,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-@TestPropertySource("/application-test.properties")
 class CovidControllerIntegrationTest {
 
     @Autowired
     private MockMvc mvc;
+
+    @MockBean private Covid19FastestUpdateApi covid19FastestUpdateApi;
+    @MockBean private JohnsHopkinsApi johnsHopkinsApi;
 
 
 
@@ -55,8 +60,8 @@ class CovidControllerIntegrationTest {
     @Test
     @DisplayName("Bad Request when country ISO is not properly formatted")
     void whenInvalidCountryISO_thenExpectBadRequest() throws Exception {
-        String baseMsg = "Country argument '%s' is not properly formatted (ISO 3166-1 alpha code)";
-        List<String> countryISOCodes = List.of("Portugal", "876", "United Kingdom", "O_O");
+        String baseMsg = "Country argument '%s' is not properly formatted (ISO 3166-1 alpha-2 code)";
+        List<String> countryISOCodes = List.of("Portugal", "876", "United Kingdom", "O_O", "ABC");
 
         for (String countryISOCode : countryISOCodes)
             mvc.perform(get("/api/covid/stats/{country}", countryISOCode))
@@ -69,7 +74,7 @@ class CovidControllerIntegrationTest {
     @DisplayName("Not Found when country ISO doesn't exist (not supported)")
     void whenNonExistentCountryISO_thenExpectNotFound() throws Exception {
         String baseMsg = "The specified country ISO code '%s' does not exist in this platform";
-        List<String> countryISOCodes = List.of("ABC", "ZZZ", "WOW");
+        List<String> countryISOCodes = List.of("XZ", "ZZ", "LL");
 
         for (String countryISOCode : countryISOCodes)
             mvc.perform(get("/api/covid/stats/{country}", countryISOCode))

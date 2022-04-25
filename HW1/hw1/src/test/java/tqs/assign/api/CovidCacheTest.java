@@ -5,7 +5,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 import tqs.assign.TestUtils;
 import tqs.assign.data.CacheStats;
 import tqs.assign.data.ResponseData;
@@ -38,8 +37,7 @@ class CovidCacheTest {
 
     @BeforeEach
     void setUp() {
-        covidCache = new CovidCache();
-        ReflectionTestUtils.setField(covidCache, "ttl", 60L);
+        covidCache = new CovidCache(60L);
     }
 
 
@@ -60,7 +58,7 @@ class CovidCacheTest {
     void whenResponseStoredLongerThanTTL_thenResponseIsStale() {
         Duration ttl = Duration.ofSeconds(5L);
 
-        ReflectionTestUtils.setField(covidCache, "ttl", ttl.getSeconds());
+        covidCache.setTtl(ttl.getSeconds());
         covidCache.store(testQuery, testResponse);
         assertFalse(covidCache.stale(testQuery));
 
@@ -94,7 +92,7 @@ class CovidCacheTest {
         assertEquals(new CacheStats(1, queryResponses.size(), queryResponses.size(), ttl), covidCache.statsSnapshot());
 
         Duration noTtl = Duration.ZERO;
-        ReflectionTestUtils.setField(covidCache, "ttl", noTtl.getSeconds());
+        covidCache.setTtl(noTtl.getSeconds());
         await().atMost(noTtl.plusSeconds(2L)).untilAsserted(() -> assertTrue(covidCache.stale(testQuery)));
         covidCache.getOrStore(testQuery, (q) -> testResponse);
         assertEquals(new CacheStats(

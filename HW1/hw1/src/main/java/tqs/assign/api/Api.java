@@ -10,4 +10,6 @@ public interface Api {
 
     Set<String> getSupportedCountries();
 
+    boolean isEnabled();
+
 }

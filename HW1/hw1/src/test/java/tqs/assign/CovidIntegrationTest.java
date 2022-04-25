@@ -8,10 +8,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
 import tqs.assign.api.ApiQuery;
 import tqs.assign.api.CovidApi;
@@ -23,6 +25,7 @@ import tqs.assign.data.ResponseData;
 import tqs.assign.data.Stats;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,24 +33,20 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestPropertySource(
+        locations = "/application-test.properties",
+        properties = "api.covid-fu.incomplete-responses=true")
 class CovidIntegrationTest {
 
     @LocalServerPort
     int randomServerPort;
 
-    @Autowired
-    private TestRestTemplate restTemplate;
+    @Autowired private TestRestTemplate restTemplate;
+    @Autowired private CovidCache covidCache;
+    @Autowired private CovidApi covidApi;
 
-    @Autowired
-    private CovidCache covidCache;
-
-    @Autowired
-    private CovidApi covidApi;
-
-    @MockBean
-    private JohnsHopkinsApi johnsHopkinsApi;
-    @MockBean
-    private Covid19FastestUpdateApi covid19FastestUpdateApi;
+    @MockBean private JohnsHopkinsApi johnsHopkinsApi;
+    @MockBean private Covid19FastestUpdateApi covid19FastestUpdateApi;
 
     private final Map<ApiQuery, ApiQueryInfo> queryResponses = Map.of(
             ApiQuery.builder().build(), new ApiQueryInfo("/api/covid/stats"),
@@ -86,6 +85,7 @@ class CovidIntegrationTest {
         when(johnsHopkinsApi.getSupportedCountries()).thenReturn(supportedCountries);
         when(covid19FastestUpdateApi.getSupportedCountries()).thenReturn(supportedCountries);
         ReflectionTestUtils.setField(covidApi, "supportedCountries", supportedCountries);
+        ReflectionTestUtils.setField(covidApi, "supportedApis", List.of(johnsHopkinsApi, covid19FastestUpdateApi));
     }
 
     @AfterEach

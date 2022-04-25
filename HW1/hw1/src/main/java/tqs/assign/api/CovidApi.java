@@ -1,7 +1,7 @@
 package tqs.assign.api;
 
 import lombok.Getter;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tqs.assign.api.external.Covid19FastestUpdateApi;
@@ -17,17 +17,17 @@ import tqs.assign.exceptions.UnsupportedCountryISOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Proxy bean that alternates between external APIs based on availability.
  */
 @Service
-@Log4j2
+@Slf4j
 public class CovidApi implements Api {
 
     private final List<Api> supportedApis;
-    @Getter private Set<String> supportedCountries;
+    @Getter private final Set<String> supportedCountries;
     private int chosenApiIdx;
 
     private final CovidCache covidCache;
@@ -37,16 +37,20 @@ public class CovidApi implements Api {
                     JohnsHopkinsApi johnsHopkinsApi,
                     Covid19FastestUpdateApi covid19FastestUpdateApi) {
 
-        supportedApis = List.of(
+        supportedApis = Stream.of(
                 johnsHopkinsApi,
                 covid19FastestUpdateApi
-        );
+        ).filter(Api::isEnabled).toList();
         chosenApiIdx = 0;
+
+        log.info("Enabled external APIs: {}", supportedApis);
 
         supportedCountries = new HashSet<>();
         supportedApis.stream()
                 .map(Api::getSupportedCountries)
                 .forEach(supportedCountries::addAll);
+
+        log.debug("Supported countries: {}", supportedCountries);
 
         this.covidCache = covidCache;
 
@@ -60,32 +64,41 @@ public class CovidApi implements Api {
         return (Stats) covidCache.getOrStore(query, this::queryApis);
     }
 
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
     public CacheStats getCacheStats() {
         return covidCache.statsSnapshot();
     }
 
 
 
-    private Stats queryApis(ApiQuery query) throws UnavailableApiException {
+    private Stats queryApis(ApiQuery query) {
         Stats response = new NullStats();
         int initialApiIdx = chosenApiIdx;
-        do {
-            Api chosenApi = supportedApis.get(chosenApiIdx);
-            try {
-                response = chosenApi.getStats(query);
-            } catch (UnavailableExternalApiException ex) {
-                chosenApiIdx = (++chosenApiIdx) % supportedApis.size();
-            }
-        } while (response.isNull() && initialApiIdx != chosenApiIdx);
+        if (!supportedApis.isEmpty())
+            do {
+                Api chosenApi = supportedApis.get(chosenApiIdx);
+                try {
+                    response = chosenApi.getStats(query);
+                } catch (UnavailableExternalApiException ex) {
+                    log.debug("Api {} could not fulfill request: {}", chosenApi, ex.getMessage());
+                    chosenApiIdx = (++chosenApiIdx) % supportedApis.size();
+                }
+            } while (response.isNull() && initialApiIdx != chosenApiIdx);
 
-        if (response.isNull())
+        if (response.isNull()) {
+            log.error("No external API could fulfill the request: {}", query);
             throw new UnavailableApiException();
+        }
 
         return response;
     }
 
     private void validateCountryIso(String countryISO) {
-        if (!countryISO.matches("[A-Z]{1,3}"))
+        if (!countryISO.matches("[A-Z]{1,2}"))
             throw new IncorrectlyFormattedCountryException(countryISO);
         if (!supportedCountries.contains(countryISO))
             throw new UnsupportedCountryISOException(countryISO);

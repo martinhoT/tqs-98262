@@ -6,10 +6,17 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import tqs.assign.data.Stats;
+import tqs.assign.exceptions.IncorrectlyFormattedParametersException;
+import tqs.assign.exceptions.UnavailableApiException;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
@@ -62,6 +69,16 @@ public class MainController {
         model.addAttribute("stats", restCacheApi.getStats());
 
         return "results-cache";
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ModelAndView handleApiException(HttpServletRequest request, ResponseStatusException ex) {
+        log.error("Request {} raised {}", request.getRequestURL(), ex);
+
+        ModelAndView mav = new ModelAndView();
+        mav.addObject("reason", ex.getReason());
+        mav.setViewName("error-page");
+        return mav;
     }
 
 

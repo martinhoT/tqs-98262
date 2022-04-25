@@ -188,7 +188,7 @@ class CovidControllerTest {
         String msg = "The specified resource is unavailable, since no external data providers can fulfill the request at the moment";
 
         mvc.perform(get("/api/covid/stats"))
-                .andExpect(status().isGatewayTimeout())
+                .andExpect(status().isOk())
                 .andExpect(status().reason(msg))
                 .andExpect(result -> assertInstanceOf(UnavailableApiException.class, result.getResolvedException()));
     }

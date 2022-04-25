@@ -1,10 +1,12 @@
 package tqs.assign.exceptions;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.server.ResponseStatusException;
 
-@ResponseStatus(
-        code = HttpStatus.GATEWAY_TIMEOUT,
-        reason = "The specified resource is unavailable, since no external data providers can fulfill the request at the moment")
-public class UnavailableApiException extends RuntimeException {
+public class UnavailableApiException extends ResponseStatusException {
+
+    public UnavailableApiException() {
+        super(HttpStatus.OK, "The specified resource is unavailable, since no external data providers can fulfil the request at the moment");
+    }
+
 }

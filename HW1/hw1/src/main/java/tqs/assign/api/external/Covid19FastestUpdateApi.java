@@ -2,7 +2,9 @@ package tqs.assign.api.external;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
+import lombok.Getter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -13,6 +15,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
 import tqs.assign.api.Api;
 import tqs.assign.api.ApiQuery;
+import tqs.assign.data.NullStats;
 import tqs.assign.data.Stats;
 import tqs.assign.exceptions.UnavailableExternalApiException;
 
@@ -28,6 +31,11 @@ public class Covid19FastestUpdateApi implements Api {
 
     public static final String BASE_URL = "https://api.covid19api.com";
 
+    @Getter
+    private final boolean enabled;
+
+    private final boolean allowIncompleteResponses;
+
     private final WebClient webClient;
 
     private Set<Covid19Country> countries;
@@ -35,7 +43,13 @@ public class Covid19FastestUpdateApi implements Api {
 
 
 
-    public Covid19FastestUpdateApi(String baseUrl) {
+    public Covid19FastestUpdateApi(final String baseUrl, final boolean enabled, final boolean allowIncompleteResponses) {
+        this.enabled = enabled;
+        this.allowIncompleteResponses = allowIncompleteResponses;
+
+        countries = new HashSet<>();
+        countriesIsoMap = new HashMap<>();
+
         webClient = WebClient.builder()
                 .baseUrl(baseUrl)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -43,6 +57,9 @@ public class Covid19FastestUpdateApi implements Api {
                         .responseTimeout(Duration.ofSeconds(5))
                 ))
                 .build();
+
+        if (!this.enabled)
+            return;
 
         Optional<Set<Covid19Country>> countriesOptional = webClient.get()
                 .uri("/countries")
@@ -54,20 +71,22 @@ public class Covid19FastestUpdateApi implements Api {
             countries = countriesOptional.get();
             countriesIsoMap = countries.stream().collect(Collectors.toMap(Covid19Country::getIso2, c -> c));
         }
-        else {
-            countries = new HashSet<>();
-            countriesIsoMap = new HashMap<>();
-        }
     }
 
-    public Covid19FastestUpdateApi() {
-        this(BASE_URL);
+    @Autowired
+    public Covid19FastestUpdateApi(
+            @Value("${api.covid-fu.enabled}") final String enabled,
+            @Value("${api.covid-fu.incomplete-responses}") final String allowIncompleteResponses) {
+        this(BASE_URL, Boolean.parseBoolean(enabled), Boolean.parseBoolean(allowIncompleteResponses));
     }
 
 
 
     @Override
     public Stats getStats(ApiQuery query) {
+        if (!enabled)
+            return new NullStats();
+
         MultiValueMap<String, String> queryParams = new MultiValueMapAdapter<>(new HashMap<>());
         if (query.getAtDate() != null) {
             LocalDate atDate = query.getAtDate();
@@ -82,8 +101,12 @@ public class Covid19FastestUpdateApi implements Api {
         }
 
         String atCountry = query.getAtCountry();
-        if (atCountry == null)
-            throw new UnavailableExternalApiException();
+        if (atCountry == null) {
+            if (allowIncompleteResponses)
+                return queryAtWorld(queryParams);
+            else
+                throw new UnavailableExternalApiException("Responses to 'world' requests are incomplete and the 'allowIncompleteResponses' flag is set to 'false'");
+        }
         return queryAtCountry(countriesIsoMap.get(atCountry).getSlug(), queryParams);
     }
 
@@ -109,10 +132,10 @@ public class Covid19FastestUpdateApi implements Api {
                 .collectList().blockOptional();
 
         List<Covid19WorldStats> covid19WorldStatsList = covid19StatsListOptional
-                .orElseThrow(UnavailableExternalApiException::new);
+                .orElseThrow(() -> new UnavailableExternalApiException("Optional response is empty"));
 
         if (covid19WorldStatsList.isEmpty())
-            throw new UnavailableExternalApiException();
+            throw new UnavailableExternalApiException("Response's list of results is empty");
 
         Covid19WorldStats last = covid19WorldStatsList.get(covid19WorldStatsList.size() - 1);
         Covid19WorldStats first = covid19WorldStatsList.get(0);
@@ -138,10 +161,10 @@ public class Covid19FastestUpdateApi implements Api {
                 .collectList().blockOptional();
 
         List<Covid19CountryStats> covid19CountryStatsList = covid19StatsListOptional
-                .orElseThrow(UnavailableExternalApiException::new);
+                .orElseThrow(() -> new UnavailableExternalApiException("Optional response is empty"));
 
         if (covid19CountryStatsList.isEmpty())
-            throw new UnavailableExternalApiException();
+            throw new UnavailableExternalApiException("Response's list of results is empty");
 
         Covid19CountryStats last = covid19CountryStatsList.get(covid19CountryStatsList.size() - 1);
         Covid19CountryStats first = covid19CountryStatsList.get(0);

@@ -8,7 +8,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
 import tqs.assign.api.ApiQuery;
 import tqs.assign.data.Stats;
 import tqs.assign.exceptions.UnavailableExternalApiException;
@@ -33,6 +32,7 @@ class JohnsHopkinsApiTest {
     private JohnsHopkinsApi johnsHopkinsApi;
 
     private Set<JohnsHopkinsCountry> countries;
+    private Set<String> countriesIso2;
 
     private final String baseJson = "{\"data\":%s}";
 
@@ -46,13 +46,14 @@ class JohnsHopkinsApiTest {
         JohnsHopkinsCountry countryPT = new JohnsHopkinsCountry("CHN", "China");
         JohnsHopkinsCountry countryGB = new JohnsHopkinsCountry("USA", "US");
         countries = Set.of(countryPT, countryGB);
+        countriesIso2 = Set.of("CN", "US");
 
         mockWebServer.enqueue(new MockResponse()
                 .setBody( baseJson.formatted(gson.toJson(countries)) )
                 .addHeader("Content-Type", "application/json"));
 
         String baseUrl = "http://localhost:" + mockWebServer.getPort();
-        johnsHopkinsApi = new JohnsHopkinsApi(baseUrl);
+        johnsHopkinsApi = new JohnsHopkinsApi(baseUrl, null, true);
 
         RecordedRequest request = mockWebServer.takeRequest(5, TimeUnit.SECONDS);
         assertNotNull(request);
@@ -70,7 +71,7 @@ class JohnsHopkinsApiTest {
     @DisplayName("Get supported countries")
     void whenGetSupportedCountries_thenGetSupportedCountries() {
         assertEquals(
-                countries.stream().map(JohnsHopkinsCountry::getIso).collect(Collectors.toSet()),
+                countriesIso2,
                 johnsHopkinsApi.getSupportedCountries());
     }
 
@@ -167,7 +168,7 @@ class JohnsHopkinsApiTest {
                         resultsCountry.getActiveDiff(),
                         resultsCountry.getFatalityRate()
                 ), johnsHopkinsApi.getStats(ApiQuery.builder()
-                        .atCountry("USA")
+                        .atCountry("US")
                         .atDate(LocalDate.of(2021, 3, 20))
                         .build())
         );
