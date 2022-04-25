@@ -152,7 +152,8 @@ class CovidApiIntegrationTest {
         when(johnsHopkinsApi.getStats(any())).thenThrow(UnavailableExternalApiException.class);
         when(covid19FastestUpdateApi.getStats(any())).thenThrow(UnavailableExternalApiException.class);
 
-        assertThrows(UnavailableApiException.class, () -> covidApi.getStats(ApiQuery.builder().build()));
+        ApiQuery query = ApiQuery.builder().build();
+        assertThrows(UnavailableApiException.class, () -> covidApi.getStats(query));
     }
 
 
