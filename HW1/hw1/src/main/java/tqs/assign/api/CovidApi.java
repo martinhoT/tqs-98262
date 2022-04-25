@@ -3,6 +3,7 @@ package tqs.assign.api;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import tqs.assign.api.external.Covid19FastestUpdateApi;
 import tqs.assign.api.external.JohnsHopkinsApi;
@@ -37,6 +38,8 @@ public class CovidApi implements Api {
                     JohnsHopkinsApi johnsHopkinsApi,
                     Covid19FastestUpdateApi covid19FastestUpdateApi) {
 
+        this.covidCache = covidCache;
+
         supportedApis = Stream.of(
                 johnsHopkinsApi,
                 covid19FastestUpdateApi
@@ -52,8 +55,6 @@ public class CovidApi implements Api {
 
         log.debug("Supported countries: {}", supportedCountries);
 
-        this.covidCache = covidCache;
-
     }
 
     @Override
@@ -67,6 +68,14 @@ public class CovidApi implements Api {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public void fetchSupportedCountries() {
+        supportedApis.forEach(Api::fetchSupportedCountries);
+        supportedCountries.clear();
+        supportedApis.stream()
+                .map(Api::getSupportedCountries)
+                .forEach(supportedCountries::addAll);
     }
 
     public CacheStats getCacheStats() {

@@ -7,7 +7,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>2.6.6</version>
+    <version>2.6.7</version>
     <relativePath/> <!-- lookup parent from repository -->
   </parent>
 
@@ -22,9 +22,11 @@
 
     <junit-jupiter.version>5.8.2</junit-jupiter.version>
     <junit-platform-suite.version>1.8.2</junit-platform-suite.version>
-    <cucumber.version>7.2.3</cucumber.version>
-    <selenium-java.version>4.1.2</selenium-java.version>
+    <cucumber.version>7.3.2</cucumber.version>
+    <selenium-java.version>3.141.59</selenium-java.version>
     <webdrivermanager.version>5.1.0</webdrivermanager.version>
+    <okhttp3.version>3.11.0</okhttp3.version>
+    <htmlunit.version>2.54.0</htmlunit.version>
 
     <sonar.organization>martinhot</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
@@ -76,15 +78,15 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.seleniumhq.selenium</groupId>
-      <artifactId>selenium-java</artifactId>
-      <version>${selenium-java.version}</version>
+      <groupId>io.cucumber</groupId>
+      <artifactId>cucumber-spring</artifactId>
+      <version>${cucumber.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>io.github.bonigarcia</groupId>
-      <artifactId>webdrivermanager</artifactId>
-      <version>${webdrivermanager.version}</version>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-java</artifactId>
+      <version>${selenium-java.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -96,14 +98,24 @@
     <dependency>
       <groupId>com.squareup.okhttp3</groupId>
       <artifactId>okhttp</artifactId>
-      <version>4.0.1</version>
+      <version>${okhttp3.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.squareup.okhttp3</groupId>
       <artifactId>mockwebserver</artifactId>
-      <version>4.0.1</version>
+      <version>${okhttp3.version}</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.sourceforge.htmlunit</groupId>
+      <artifactId>htmlunit</artifactId>
+      <version>${htmlunit.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>htmlunit-driver</artifactId>
+      <version>2.54.0</version>
     </dependency>
 
     <!--  Others  -->
@@ -129,6 +141,15 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>1.4.1</version>
+        <configuration>
+          <rules><dependencyConvergence/></rules>
+        </configuration>
       </plugin>
 
       <plugin>

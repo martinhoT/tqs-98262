@@ -39,10 +39,7 @@ public class MainController {
     public String index(Model model) {
         model.addAttribute("countryList",
                 restCovidApi.getCountries().stream()
-                        .map(iso2 -> {
-                            Locale locale = new Locale("", iso2);
-                            return new FormCountry(iso2, locale.getDisplayCountry());
-                        })
+                        .map(iso2 -> new FormCountry(iso2, convertCountryIso2ToName(iso2)))
                         .sorted((c1,c2) -> String.CASE_INSENSITIVE_ORDER.compare(c1.getIso2(), c2.getIso2()))
                         .toList()
         );
@@ -57,8 +54,12 @@ public class MainController {
         Optional<LocalDate> before = convertFormDateStringToParameter(covidStatsForm.getDateBefore());
         Optional<LocalDate> after = convertFormDateStringToParameter(covidStatsForm.getDateAfter());
 
-        Stats stats = restCovidApi.getStats(country, date, before, after);
+        Stats stats = restCovidApi.getStats(country, date, after, before);
 
+        model.addAttribute("locationStr", covidStatsForm.isWorld() ? "the world" : convertCountryIso2ToName(covidStatsForm.getCountry()));
+        model.addAttribute("dateBefore", covidStatsForm.getDateBefore());
+        model.addAttribute("dateAfter", covidStatsForm.getDateAfter());
+        model.addAttribute("dateAt", covidStatsForm.getDateAt());
         model.addAttribute("stats", stats);
 
         return "results-covid";
@@ -79,6 +80,12 @@ public class MainController {
         mav.addObject("reason", ex.getReason());
         mav.setViewName("error-page");
         return mav;
+    }
+
+
+
+    private String convertCountryIso2ToName(String iso2) {
+        return new Locale("", iso2).getDisplayCountry();
     }
 
 

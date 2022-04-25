@@ -53,7 +53,7 @@ public class JohnsHopkinsApi implements Api {
 
 
 
-    public JohnsHopkinsApi(final String baseUrl, final String apiKey, final boolean enabled) {
+    public JohnsHopkinsApi(final String baseUrl, final String apiKey, final boolean enabled, final boolean autoFetchCountries) {
         this.enabled = enabled;
 
         webClient = WebClient.builder()
@@ -79,32 +79,16 @@ public class JohnsHopkinsApi implements Api {
         if (!this.enabled)
             return;
 
-        String jsonResponse = null;
-        authorized = true;
-        try {
-            jsonResponse = webClient.get()
-                    .uri("/regions")
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .block();
-        } catch (WebClientResponseException.Unauthorized ex) {
-            authorized = false;
-            log.error("WebClientResponseException.Unauthorized when obtaining country list: {}", ex.getMessage());
-        }
-
-        if (jsonResponse != null) {
-            JsonObject jsonRoot = gson.fromJson(jsonResponse, JsonObject.class);
-            jsonRoot.getAsJsonArray("data").forEach(
-                    jElem -> countries.add(gson.fromJson(jElem, JohnsHopkinsCountry.class))
-            );
-        }
+        if (autoFetchCountries)
+            fetchSupportedCountries();
     }
 
     @Autowired
     public JohnsHopkinsApi(
             @Value("${rapid-api.key}") final String apiKey,
-            @Value("${api.johns-hopkins.enabled}") final String enabled) {
-        this(BASE_URL, apiKey, Boolean.parseBoolean(enabled));
+            @Value("${api.johns-hopkins.enabled}") final String enabled,
+            @Value("${api.auto-fetch-countries}") final String autoFetchCountries) {
+        this(BASE_URL, apiKey, Boolean.parseBoolean(enabled), Boolean.parseBoolean(autoFetchCountries));
     }
 
 
@@ -173,6 +157,29 @@ public class JohnsHopkinsApi implements Api {
                 .filter(iso3ToIso2Map::containsKey)
                 .map(iso3ToIso2Map::get)
                 .collect(Collectors.toSet());
+    }
+
+    @Override
+    public void fetchSupportedCountries() {
+        String jsonResponse = null;
+        authorized = true;
+        try {
+            jsonResponse = webClient.get()
+                    .uri("/regions")
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+        } catch (WebClientResponseException.Unauthorized | WebClientResponseException.Forbidden ex) {
+            authorized = false;
+            log.error("WebClientResponseException.Unauthorized when obtaining country list: {}", ex.getMessage());
+        }
+
+        if (jsonResponse != null) {
+            JsonObject jsonRoot = gson.fromJson(jsonResponse, JsonObject.class);
+            jsonRoot.getAsJsonArray("data").forEach(
+                    jElem -> countries.add(gson.fromJson(jElem, JohnsHopkinsCountry.class))
+            );
+        }
     }
 
 

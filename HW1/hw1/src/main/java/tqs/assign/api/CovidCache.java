@@ -18,7 +18,6 @@ public class CovidCache {
 
     @Getter
     @Setter
-    @Value("${covid-cache.ttl}")
     private long ttl;
 
     private int hits = 0;

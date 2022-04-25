@@ -1,5 +1,6 @@
 package tqs.assign;
 
+import io.cucumber.spring.CucumberContextConfiguration;
 import lombok.Getter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -82,8 +83,6 @@ class CovidIntegrationTest {
 
         Set<String> supportedCountries = Set.of("PT", "GB");
 
-        when(johnsHopkinsApi.getSupportedCountries()).thenReturn(supportedCountries);
-        when(covid19FastestUpdateApi.getSupportedCountries()).thenReturn(supportedCountries);
         ReflectionTestUtils.setField(covidApi, "supportedCountries", supportedCountries);
         ReflectionTestUtils.setField(covidApi, "supportedApis", List.of(johnsHopkinsApi, covid19FastestUpdateApi));
     }

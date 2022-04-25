@@ -1,0 +1,375 @@
+{
+  "id": "b994b63c-008e-465e-8338-47083a5dfdd3",
+  "version": "2.0",
+  "name": "TQS-HW1",
+  "url": "http://localhost:8080",
+  "tests": [{
+    "id": "cbba9854-9dfa-471e-9039-3b4e4b82e29a",
+    "name": "Obtain world data",
+    "commands": [{
+      "id": "6f38680a-d568-4fe6-bf63-b135ae01e8a0",
+      "comment": "",
+      "command": "open",
+      "target": "/",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "c2796f81-4ad3-4465-a900-3fc92350f3bb",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "Covid-19 Data API",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "28eb8ac3-808e-418e-b2e8-e4c2b0e8d4c5",
+      "comment": "",
+      "command": "click",
+      "target": "id=chk-world",
+      "targets": [
+        ["id=chk-world", "id"],
+        ["name=world", "name"],
+        ["css=#chk-world", "css:finder"],
+        ["xpath=//input[@id='chk-world']", "xpath:attributes"],
+        ["xpath=//input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "3a2af275-f942-408c-a9c3-f8f7815484a5",
+      "comment": "",
+      "command": "assertChecked",
+      "target": "id=chk-world",
+      "targets": [
+        ["id=chk-world", "id"],
+        ["name=world", "name"],
+        ["css=#chk-world", "css:finder"],
+        ["xpath=//input[@id='chk-world']", "xpath:attributes"],
+        ["xpath=//input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "2f976f63-2701-43c9-99ee-049e601e5beb",
+      "comment": "",
+      "command": "assertNotEditable",
+      "target": "id=select-country",
+      "targets": [
+        ["id=chk-world", "id"],
+        ["name=world", "name"],
+        ["css=#chk-world", "css:finder"],
+        ["xpath=//input[@id='chk-world']", "xpath:attributes"],
+        ["xpath=//input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "b45255e9-a386-4b95-955b-e760456d8294",
+      "comment": "",
+      "command": "click",
+      "target": "id=date-at",
+      "targets": [
+        ["id=date-at", "id"],
+        ["name=dateAt", "name"],
+        ["css=#date-at", "css:finder"],
+        ["xpath=//input[@id='date-at']", "xpath:attributes"],
+        ["xpath=//input[5]", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "19a7a2f2-6b77-4b97-92aa-fd86f854802a",
+      "comment": "",
+      "command": "type",
+      "target": "id=date-at",
+      "targets": [
+        ["id=date-at", "id"],
+        ["name=dateAt", "name"],
+        ["css=#date-at", "css:finder"],
+        ["xpath=//input[@id='date-at']", "xpath:attributes"],
+        ["xpath=//input[5]", "xpath:position"]
+      ],
+      "value": "2021-01-01"
+    }, {
+      "id": "e66b551d-52a7-47b1-a479-700b6b6a8722",
+      "comment": "",
+      "command": "click",
+      "target": "id=covid-stats-submit",
+      "targets": [
+        ["css=button:nth-child(12)", "css:finder"],
+        ["xpath=//button[@type='submit']", "xpath:attributes"],
+        ["xpath=//button", "xpath:position"],
+        ["xpath=//button[contains(.,'Submit')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "2cf94729-e22b-422a-85c7-8fcaa6d07c1b",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "Covid stats",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "f671836b-62bc-4ae4-af15-a2747ee10b8f",
+      "comment": "",
+      "command": "assertText",
+      "target": "id=country-str",
+      "targets": [
+        ["css=h1", "css:finder"],
+        ["xpath=//h1", "xpath:position"],
+        ["xpath=//h1[contains(.,'Covid stats from the world')]", "xpath:innerText"]
+      ],
+      "value": "the world"
+    }, {
+      "id": "fe731835-7276-4a2f-b77e-5cd5c4564189",
+      "comment": "",
+      "command": "assertElementNotPresent",
+      "target": "id=date-before",
+      "targets": [
+        ["css=p:nth-child(1)", "css:finder"],
+        ["xpath=//p", "xpath:position"],
+        ["xpath=//p[contains(.,'Before:')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "38933882-01b7-4e18-9938-da23673fdf92",
+      "comment": "",
+      "command": "assertElementNotPresent",
+      "target": "id=date-after",
+      "targets": [
+        ["css=div:nth-child(2) > p:nth-child(2)", "css:finder"],
+        ["xpath=//p[2]", "xpath:position"],
+        ["xpath=//p[contains(.,'After:')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "7145e7f5-3ef3-4378-b74f-4efe97050afb",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "id=date-at",
+      "targets": [
+        ["css=p:nth-child(3)", "css:finder"],
+        ["xpath=//p[3]", "xpath:position"],
+        ["xpath=//p[contains(.,'At: 2021-01-01')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "5252f62b-d7c8-422f-98ca-43e8bc73930d",
+      "comment": "",
+      "command": "assertText",
+      "target": "id=date-at-str",
+      "targets": [
+        ["id=date-at-str", "id"],
+        ["css=#date-at-str", "css:finder"],
+        ["xpath=//span[@id='date-at-str']", "xpath:attributes"],
+        ["xpath=//p[3]/span", "xpath:position"],
+        ["xpath=//span[contains(.,'2021-01-01')]", "xpath:innerText"]
+      ],
+      "value": "2021-01-01"
+    }]
+  }, {
+    "id": "f4590da5-4c96-4502-a759-8d760c337ae6",
+    "name": "Obtain country data",
+    "commands": [{
+      "id": "6e7f9e9f-c77a-45b2-bf80-1bdfeb7065e3",
+      "comment": "",
+      "command": "open",
+      "target": "/",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "2700ed72-e0c9-4a32-8814-1016d607dc2e",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "Covid-19 Data API",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "9a36b7de-99d6-4f3d-88a0-5b1dfb1569b6",
+      "comment": "",
+      "command": "assertNotChecked",
+      "target": "id=chk-world",
+      "targets": [
+        ["id=chk-world", "id"],
+        ["name=world", "name"],
+        ["css=#chk-world", "css:finder"],
+        ["xpath=//input[@id='chk-world']", "xpath:attributes"],
+        ["xpath=//input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "c2bab605-56b8-470f-b368-7f6640b2c584",
+      "comment": "",
+      "command": "assertEditable",
+      "target": "id=select-country",
+      "targets": [
+        ["id=select-country", "id"],
+        ["name=country", "name"],
+        ["css=#select-country", "css:finder"],
+        ["xpath=//select[@id='select-country']", "xpath:attributes"],
+        ["xpath=//select", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "25c79218-2990-4eec-b02d-32a9769ef990",
+      "comment": "",
+      "command": "click",
+      "target": "id=date-after",
+      "targets": [
+        ["id=date-after", "id"],
+        ["name=dateAfter", "name"],
+        ["css=#date-after", "css:finder"],
+        ["xpath=//input[@id='date-after']", "xpath:attributes"],
+        ["xpath=//input[4]", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "fd2f7945-9100-4238-9ee0-24d11d0bf018",
+      "comment": "",
+      "command": "type",
+      "target": "id=date-after",
+      "targets": [
+        ["id=date-after", "id"],
+        ["name=dateAfter", "name"],
+        ["css=#date-after", "css:finder"],
+        ["xpath=//input[@id='date-after']", "xpath:attributes"],
+        ["xpath=//input[4]", "xpath:position"]
+      ],
+      "value": "2021-12-12"
+    }, {
+      "id": "92f9e67c-4e2f-437d-babc-e720c0899064",
+      "comment": "",
+      "command": "click",
+      "target": "id=select-country",
+      "targets": [
+        ["id=select-country", "id"],
+        ["name=country", "name"],
+        ["css=#select-country", "css:finder"],
+        ["xpath=//select[@id='select-country']", "xpath:attributes"],
+        ["xpath=//select", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "a1c3f4bc-b7d5-4274-aee6-b418d1aa3cfe",
+      "comment": "",
+      "command": "select",
+      "target": "id=select-country",
+      "targets": [],
+      "value": "label=Portugal"
+    }, {
+      "id": "c6a9cc67-9b5c-4370-9173-5fa78c4a3219",
+      "comment": "",
+      "command": "click",
+      "target": "id=covid-stats-submit",
+      "targets": [
+        ["id=covid-stats-submit", "id"],
+        ["css=#covid-stats-submit", "css:finder"],
+        ["xpath=//button[@id='covid-stats-submit']", "xpath:attributes"],
+        ["xpath=//button", "xpath:position"],
+        ["xpath=//button[contains(.,'Submit')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "fc35d960-ed36-44bf-bac8-2da5dce232f8",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "Covid stats",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "9fb0afd1-b3a1-4bf8-a8a6-9d5128eac09b",
+      "comment": "",
+      "command": "assertText",
+      "target": "id=country-str",
+      "targets": [
+        ["id=country-str", "id"],
+        ["css=#country-str", "css:finder"],
+        ["xpath=//span[@id='country-str']", "xpath:attributes"],
+        ["xpath=//h1[@id='header']/span", "xpath:idRelative"],
+        ["xpath=//span", "xpath:position"],
+        ["xpath=//span[contains(.,'Portugal')]", "xpath:innerText"]
+      ],
+      "value": "Portugal"
+    }, {
+      "id": "806a4fad-5503-4129-a7f6-c2bc4a94d334",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "id=date-after",
+      "targets": [
+        ["id=date-after", "id"],
+        ["css=#date-after", "css:finder"],
+        ["xpath=//p[@id='date-after']", "xpath:attributes"],
+        ["xpath=//p", "xpath:position"],
+        ["xpath=//p[contains(.,'After: 2021-12-12')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "3bc04154-4848-457f-8f76-962b9ed00a0c",
+      "comment": "",
+      "command": "assertText",
+      "target": "id=date-after-str",
+      "targets": [
+        ["id=date-after-str", "id"],
+        ["css=#date-after-str", "css:finder"],
+        ["xpath=//span[@id='date-after-str']", "xpath:attributes"],
+        ["xpath=//p[@id='date-after']/span", "xpath:idRelative"],
+        ["xpath=//p/span", "xpath:position"],
+        ["xpath=//span[contains(.,'2021-12-12')]", "xpath:innerText"]
+      ],
+      "value": "2021-12-12"
+    }]
+  }, {
+    "id": "aac531a1-23a9-455c-aec3-5c4c7a5f9d34",
+    "name": "Obtain cache stats",
+    "commands": [{
+      "id": "a7d4296a-b9c4-469e-8c21-65e8691e335d",
+      "comment": "",
+      "command": "open",
+      "target": "/",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "c7f0e47d-47bb-492b-80fc-8513f0b54ab6",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "Covid-19 Data API",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "3f8ebe37-56e6-45b8-a7ea-d38ceec1e7ba",
+      "comment": "",
+      "command": "click",
+      "target": "id=cache-stats-submit",
+      "targets": [
+        ["id=cache-stats-submit", "id"],
+        ["css=#cache-stats-submit", "css:finder"],
+        ["xpath=//button[@id='cache-stats-submit']", "xpath:attributes"],
+        ["xpath=//form[2]/button", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "0aa41e20-f5f0-4664-876c-09113c4a287b",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "Cache stats",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "a0f49e1c-6a2c-4526-8e19-5ad2945439bd",
+      "comment": "",
+      "command": "assertText",
+      "target": "id=header",
+      "targets": [
+        ["css=h1", "css:finder"],
+        ["xpath=//h1", "xpath:position"],
+        ["xpath=//h1[contains(.,'Cache stats')]", "xpath:innerText"]
+      ],
+      "value": "Cache stats"
+    }]
+  }],
+  "suites": [{
+    "id": "2cf94057-1606-4494-9c12-e9898c1448fb",
+    "name": "Default Suite",
+    "persistSession": false,
+    "parallel": false,
+    "timeout": 300,
+    "tests": []
+  }],
+  "urls": ["http://localhost:8080/"],
+  "plugins": []
+}

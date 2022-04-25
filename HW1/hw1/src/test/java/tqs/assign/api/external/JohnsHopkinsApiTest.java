@@ -53,7 +53,7 @@ class JohnsHopkinsApiTest {
                 .addHeader("Content-Type", "application/json"));
 
         String baseUrl = "http://localhost:" + mockWebServer.getPort();
-        johnsHopkinsApi = new JohnsHopkinsApi(baseUrl, null, true);
+        johnsHopkinsApi = new JohnsHopkinsApi(baseUrl, null, true, false);
 
         RecordedRequest request = mockWebServer.takeRequest(5, TimeUnit.SECONDS);
         assertNotNull(request);

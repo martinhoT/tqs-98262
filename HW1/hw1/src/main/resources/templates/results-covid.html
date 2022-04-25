@@ -6,9 +6,15 @@
 </head>
 <body>
 
-    <h1>Covid stats</h1>
+    <h1 id="header">Covid stats from <span id="country-str" th:text="${locationStr}"></span></h1>
 
-    <div th:object="${stats}">
+    <div>
+        <p id="date-before" th:unless="${dateBefore.isBlank()}">Before: <span id="date-before-str" th:text="${dateBefore}"></span></p>
+        <p id="date-after" th:unless="${dateAfter.isBlank()}">After: <span id="date-after-str" th:text="${dateAfter}"></span></p>
+        <p id="date-at" th:unless="${dateAt.isBlank()}">At: <span id="date-at-str" th:text="${dateAt}"></span></p>
+    </div>
+
+    <div id="stats" th:object="${stats}">
         <h3>Confirmed</h3>
         <p th:text="|*{confirmed} (+*{newConfirmed})|">?</p>
 

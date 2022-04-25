@@ -6,9 +6,9 @@
 </head>
 <body>
 
-    <h1>Cache stats</h1>
+    <h1 id="header">Cache stats</h1>
 
-    <div th:object="${stats}">
+    <div id="stats" th:object="${stats}">
         <h3>Hits</h3>
         <p th:text="*{hits}">?</p>
 

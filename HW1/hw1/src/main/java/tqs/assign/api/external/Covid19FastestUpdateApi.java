@@ -43,7 +43,10 @@ public class Covid19FastestUpdateApi implements Api {
 
 
 
-    public Covid19FastestUpdateApi(final String baseUrl, final boolean enabled, final boolean allowIncompleteResponses) {
+    public Covid19FastestUpdateApi(final String baseUrl,
+                                   final boolean enabled,
+                                   final boolean allowIncompleteResponses,
+                                   final boolean autoFetchCountries) {
         this.enabled = enabled;
         this.allowIncompleteResponses = allowIncompleteResponses;
 
@@ -61,23 +64,16 @@ public class Covid19FastestUpdateApi implements Api {
         if (!this.enabled)
             return;
 
-        Optional<Set<Covid19Country>> countriesOptional = webClient.get()
-                .uri("/countries")
-                .retrieve()
-                .bodyToFlux(Covid19Country.class)
-                .collect(Collectors.toSet()).blockOptional();
-
-        if (countriesOptional.isPresent()) {
-            countries = countriesOptional.get();
-            countriesIsoMap = countries.stream().collect(Collectors.toMap(Covid19Country::getIso2, c -> c));
-        }
+        if (autoFetchCountries)
+            fetchSupportedCountries();
     }
 
     @Autowired
     public Covid19FastestUpdateApi(
             @Value("${api.covid-fu.enabled}") final String enabled,
-            @Value("${api.covid-fu.incomplete-responses}") final String allowIncompleteResponses) {
-        this(BASE_URL, Boolean.parseBoolean(enabled), Boolean.parseBoolean(allowIncompleteResponses));
+            @Value("${api.covid-fu.incomplete-responses}") final String allowIncompleteResponses,
+            @Value("${api.auto-fetch-countries}") final String autoFetchCountries) {
+        this(BASE_URL, Boolean.parseBoolean(enabled), Boolean.parseBoolean(allowIncompleteResponses), Boolean.parseBoolean(autoFetchCountries));
     }
 
 
@@ -113,6 +109,20 @@ public class Covid19FastestUpdateApi implements Api {
     @Override
     public Set<String> getSupportedCountries() {
         return countriesIsoMap.keySet();
+    }
+
+    @Override
+    public void fetchSupportedCountries() {
+        Optional<Set<Covid19Country>> countriesOptional = webClient.get()
+                .uri("/countries")
+                .retrieve()
+                .bodyToFlux(Covid19Country.class)
+                .collect(Collectors.toSet()).blockOptional();
+
+        if (countriesOptional.isPresent()) {
+            countries = countriesOptional.get();
+            countriesIsoMap = countries.stream().collect(Collectors.toMap(Covid19Country::getIso2, c -> c));
+        }
     }
 
 
