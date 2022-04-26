@@ -1,6 +1,6 @@
 package tqs.assign.controller;
 
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import tqs.assign.api.ApiQuery;
@@ -13,7 +13,7 @@ import java.util.Set;
 
 @RestController
 @RequestMapping("/api/covid")
-@Log4j2
+@Slf4j
 public class CovidController {
 
     private final CovidApi covidApi;
