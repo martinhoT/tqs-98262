@@ -36,6 +36,8 @@ class JohnsHopkinsApiTest {
 
     private final String baseJson = "{\"data\":%s}";
 
+   private String baseUrl;
+
 
 
     @BeforeEach
@@ -52,12 +54,13 @@ class JohnsHopkinsApiTest {
                 .setBody( baseJson.formatted(gson.toJson(countries)) )
                 .addHeader("Content-Type", "application/json"));
 
-        String baseUrl = "http://localhost:" + mockWebServer.getPort();
-        johnsHopkinsApi = new JohnsHopkinsApi(baseUrl, null, true, false);
+        baseUrl = "http://localhost:" + mockWebServer.getPort();
+        johnsHopkinsApi = new JohnsHopkinsApi(baseUrl, null, true, true);
 
         RecordedRequest request = mockWebServer.takeRequest(5, TimeUnit.SECONDS);
         assertNotNull(request);
         assertEquals("/regions", request.getPath());
+
     }
 
     @AfterEach
@@ -66,6 +69,14 @@ class JohnsHopkinsApiTest {
     }
 
 
+
+    @Test
+    @DisplayName("Don't automatically fetch countries if built with its flag disabled")
+    void whenBuiltWithDisabledAutoFetchCountries_thenNoRequests() throws InterruptedException {
+        new JohnsHopkinsApi(baseUrl, null, true, false);
+        RecordedRequest request = mockWebServer.takeRequest(1, TimeUnit.SECONDS);
+        assertNull(request);
+    }
 
     @Test
     @DisplayName("Get supported countries")

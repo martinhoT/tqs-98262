@@ -18,7 +18,10 @@ import java.util.Set;
 @CucumberContextConfiguration
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
-        properties = "api.covid-fu.incomplete-responses=true")
+        properties = {
+                "api.covid-fu.enabled=false",
+                "api.johns-hopkins.enabled=false"
+        })
 @TestPropertySource("/application-test.properties")
 public class CucumberSpringConfiguration {
 

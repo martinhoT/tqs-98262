@@ -33,6 +33,8 @@ class Covid19FastestUpdateApiTest {
 
     private Set<Covid19Country> countries;
 
+    private String baseUrl;
+
 
 
     @BeforeEach
@@ -48,8 +50,8 @@ class Covid19FastestUpdateApiTest {
                 .setBody( gson.toJson(countries) )
                 .addHeader("Content-Type", "application/json"));
 
-        String baseUrl = "http://localhost:" + mockWebServer.getPort();
-        covid19FastestUpdateApi = new Covid19FastestUpdateApi(baseUrl, true, true, false);
+        baseUrl = "http://localhost:" + mockWebServer.getPort();
+        covid19FastestUpdateApi = new Covid19FastestUpdateApi(baseUrl, true, true, true);
 
         RecordedRequest request = mockWebServer.takeRequest(5, TimeUnit.SECONDS);
         assertNotNull(request);
@@ -62,6 +64,14 @@ class Covid19FastestUpdateApiTest {
     }
 
 
+
+    @Test
+    @DisplayName("Don't automatically fetch countries if built with its flag disabled")
+    void whenBuiltWithDisabledAutoFetchCountries_thenNoRequests() throws InterruptedException {
+        new Covid19FastestUpdateApi(baseUrl, true, true, false);
+        RecordedRequest request = mockWebServer.takeRequest(1, TimeUnit.SECONDS);
+        assertNull(request);
+    }
 
     @Test
     @DisplayName("Get supported countries")
