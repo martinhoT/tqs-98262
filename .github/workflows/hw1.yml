@@ -46,6 +46,6 @@ jobs:
       if: always()
       with:
           name: Maven tests
-          path: HW1/hw1/target/surefire-reports/TEST-tqs.assign.*.xml
+          path: HW1/hw1/target/surefire-reports/TEST-*.xml
           reporter: java-junit
           fail-on-error: true
