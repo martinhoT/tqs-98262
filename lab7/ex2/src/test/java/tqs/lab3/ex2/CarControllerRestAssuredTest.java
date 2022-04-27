@@ -6,6 +6,7 @@ import io.restassured.module.mockmvc.response.MockMvcResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
@@ -17,17 +18,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasSize;
+import static io.restassured.module.mockmvc.RestAssuredMockMvc.*;
+import static io.restassured.module.mockmvc.matcher.RestAssuredMockMvcMatchers.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @WebMvcTest(CarController.class)
 class CarControllerRestAssuredTest {
 
+    @Autowired
     MockMvc mvc;
 
     @MockBean
@@ -58,10 +58,10 @@ class CarControllerRestAssuredTest {
         for (int i = 0; i < cars.size(); i++) {
             Car car = cars.get(i);
             car.setCarId((long) i);
-            when(carService.getCarDetails((long) i)).thenReturn(Optional.of(car));
-            when(carService.save(car)).thenReturn(car);
+            doReturn(Optional.of(car)).when(carService).getCarDetails((long) i);
+            doReturn(car).when(carService).save(car);
         }
-        when(carService.getAllCars()).thenReturn(cars);
+        doReturn(cars).when(carService).getAllCars();
 
         List<Car> carsReturned = convertMvcResultIntoCarList(mvcGetAllCars());
         for (int i = 0; i < cars.size(); i++) {
@@ -78,21 +78,21 @@ class CarControllerRestAssuredTest {
             assertEquals(carReturnedList.getModel(), carCreated.getModel());
         }
 
-        assertThat(carsReturned, hasSize(cars.size()));
+        assertThat(carsReturned).hasSize(cars.size());
 
         verify(carService, times(cars.size())).save(any());
     }
 
     @Test
-    void whenQueryInexistentCars_thenReturnNoCars() throws Exception {
+    void whenQueryNonExistentCars_thenReturnNoCars() throws Exception {
         // Mocking
         when(carService.getCarDetails(anyLong())).thenReturn(Optional.empty());
         when(carService.getAllCars()).thenReturn(new ArrayList<>());
 
-        mvcGetCarById(0L).then().status(HttpStatus.OK);
-        mvcGetCarById(10L).then().status(HttpStatus.OK);
+        mvcGetCarById(0L).then().status(HttpStatus.NOT_FOUND);
+        mvcGetCarById(10L).then().status(HttpStatus.NOT_FOUND);
 
-        assertThat(convertMvcResultIntoCarList(mvcGetAllCars()), empty());
+        assertThat(convertMvcResultIntoCarList(mvcGetAllCars())).isEmpty();
     }
 
     @Test
@@ -107,7 +107,7 @@ class CarControllerRestAssuredTest {
         response.then().statusCode(HttpStatus.OK.value());
         Car carReturned = convertMvcResultIntoCar(response);
 
-        // Can't test with normal 'equals' since Car is an Hibernate entity
+        // Can't test with normal 'equals' since Car is a Hibernate entity
         assertEquals(car.getMaker(), carReturned.getMaker());
         assertEquals(car.getModel(), carReturned.getModel());
     }
@@ -117,8 +117,7 @@ class CarControllerRestAssuredTest {
         Car car = new Car("Rover", "OG");
         when(carService.getCarDetails(car.getCarId())).thenReturn(Optional.of(car));
 
-        mvcCreateCar(car)
-            .then().status(HttpStatus.CONFLICT);
+        mvcCreateCar(car).then().status(HttpStatus.CONFLICT);
     }
 
     private MockMvcResponse mvcCreateCar(Car car) throws Exception {
