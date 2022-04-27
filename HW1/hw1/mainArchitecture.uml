@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>tqs.assign.api.CovidApi</OriginalElement>
+  <nodes>
+    <node x="-510.0" y="338.0">tqs.assign.controller.CovidCacheController</node>
+    <node x="-604.4999999999999" y="260.0">tqs.assign.api.CovidCache</node>
+    <node x="-239.23255813953477" y="47.33333333333334">tqs.assign.api.external.Covid19FastestUpdateApi</node>
+    <node x="-487.9998914728681" y="47.33333333333334">tqs.assign.api.external.JohnsHopkinsApi</node>
+    <node x="-360.56589147286826" y="416.0">tqs.assign.controller.MainController</node>
+    <node x="-313.56589147286826" y="182.0">tqs.assign.api.Api</node>
+    <node x="-542.1665581395348" y="141.33333333333331">tqs.assign.data.ResponseData</node>
+    <node x="-687.5" y="16.000000000000014">tqs.assign.data.NullStats</node>
+    <node x="-336.56589147286826" y="260.0">tqs.assign.api.CovidApi</node>
+    <node x="-705.5" y="187.66666666666666">tqs.assign.data.CacheStats</node>
+    <node x="-655.5" y="95.0">tqs.assign.data.Stats</node>
+    <node x="-263.0" y="338.0">tqs.assign.controller.CovidController</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="tqs.assign.api.external.Covid19FastestUpdateApi" target="tqs.assign.api.Api" relationship="REALIZATION">
+      <point x="-4.418604652300928E-4" y="13.999666666666656" />
+      <point x="-110.733" y="108.0" />
+      <point x="-245.066" y="108.0" />
+      <point x="30.499891472868256" y="-14.0" />
+    </edge>
+    <edge source="tqs.assign.api.CovidApi" target="tqs.assign.api.CovidCache" relationship="TO_ONE">
+      <point x="-61.0" y="0.0" />
+      <point x="73.0" y="0.0" />
+    </edge>
+    <edge source="tqs.assign.controller.CovidCacheController" target="tqs.assign.api.CovidApi" relationship="TO_ONE">
+      <point x="0.0" y="-14.0" />
+      <point x="-396.5" y="313.0" />
+      <point x="-275.566" y="313.0" />
+      <point x="-1.085271317151637E-4" y="14.0" />
+    </edge>
+    <edge source="tqs.assign.controller.MainController" target="tqs.assign.controller.CovidCacheController" relationship="TO_ONE">
+      <point x="-14.934108527131741" y="-14.0" />
+      <point x="106.0" y="14.0" />
+    </edge>
+    <edge source="tqs.assign.controller.CovidController" target="tqs.assign.api.CovidApi" relationship="TO_ONE">
+      <point x="0.0" y="-14.0" />
+      <point x="-174.5" y="313.0" />
+      <point x="-275.566" y="313.0" />
+      <point x="-1.085271317151637E-4" y="14.0" />
+    </edge>
+    <edge source="tqs.assign.controller.MainController" target="tqs.assign.controller.CovidController" relationship="TO_ONE">
+      <point x="20.06589147286826" y="-14.0" />
+      <point x="-81.0" y="14.0" />
+    </edge>
+    <edge source="tqs.assign.data.NullStats" target="tqs.assign.data.Stats" relationship="GENERALIZATION">
+      <point x="0.0" y="14.0" />
+      <point x="-610.5" y="44.000000000000014" />
+      <point x="0.0" y="-14.0" />
+    </edge>
+    <edge source="tqs.assign.api.external.JohnsHopkinsApi" target="tqs.assign.data.NullStats" relationship="CREATE">
+      <point x="91.49989147286811" y="-3.333333333426225E-4" />
+      <point x="-275.0" y="61.333" />
+      <point x="-275.0" y="29.833" />
+      <point x="61.0" y="-0.1670000000000158" />
+    </edge>
+    <edge source="tqs.assign.api.external.JohnsHopkinsApi" target="tqs.assign.data.Stats" relationship="CREATE">
+      <point x="14.999891472868114" y="13.999666666666656" />
+      <point x="-381.5" y="92.0" />
+      <point x="-466.0" y="92.0" />
+      <point x="-466.0" y="108.0" />
+      <point x="45.0" y="-1.0" />
+    </edge>
+    <edge source="tqs.assign.api.external.JohnsHopkinsApi" target="tqs.assign.api.Api" relationship="REALIZATION">
+      <point x="-1.0852713188569396E-4" y="13.999666666666656" />
+      <point x="-396.5" y="108.0" />
+      <point x="-245.066" y="108.0" />
+      <point x="30.499891472868256" y="-14.0" />
+    </edge>
+    <edge source="tqs.assign.api.CovidApi" target="tqs.assign.data.NullStats" relationship="CREATE">
+      <point x="-55.500108527131715" y="-14.0" />
+      <point x="-331.066" y="155.333" />
+      <point x="-275.0" y="155.333" />
+      <point x="-275.0" y="29.833" />
+      <point x="61.0" y="-0.1670000000000158" />
+    </edge>
+    <edge source="tqs.assign.data.CacheStats" target="tqs.assign.data.ResponseData" relationship="REALIZATION">
+      <point x="70.0" y="0.0" />
+      <point x="-610.5" y="201.66666666666666" />
+      <point x="-610.5" y="155.33333333333331" />
+      <point x="-481.0" y="155.33333333333331" />
+      <point x="-21.8334418604652" y="14.0" />
+    </edge>
+    <edge source="tqs.assign.api.external.Covid19FastestUpdateApi" target="tqs.assign.data.Stats" relationship="CREATE">
+      <point x="14.99955813953477" y="13.999666666666656" />
+      <point x="-95.733" y="92.0" />
+      <point x="-466.0" y="92.0" />
+      <point x="-466.0" y="108.0" />
+      <point x="45.0" y="-1.0" />
+    </edge>
+    <edge source="tqs.assign.data.Stats" target="tqs.assign.data.ResponseData" relationship="REALIZATION">
+      <point x="0.0" y="14.0" />
+      <point x="-610.5" y="155.33333333333331" />
+      <point x="-83.0" y="0.0" />
+    </edge>
+    <edge source="tqs.assign.api.external.Covid19FastestUpdateApi" target="tqs.assign.data.NullStats" relationship="CREATE">
+      <point x="-128.50044186046523" y="-3.333333333426225E-4" />
+      <point x="-275.0" y="61.333" />
+      <point x="-275.0" y="29.833" />
+      <point x="61.0" y="-0.1670000000000158" />
+    </edge>
+    <edge source="tqs.assign.api.CovidApi" target="tqs.assign.api.Api" relationship="TO_MANY">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="tqs.assign.api.CovidCache" target="tqs.assign.data.CacheStats" relationship="CREATE">
+      <point x="-73.0" y="0.0" />
+      <point x="-635.5" y="274.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="tqs.assign.api.CovidApi" target="tqs.assign.api.Api" relationship="REALIZATION">
+      <point x="30.89922480620072" y="-13.166666666666742" />
+      <point x="-245.066" y="260.83333333333326" />
+      <point x="30.499891472868256" y="-14.0" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic" zoom="1.5" showDependencies="true" x="-329.3333333333343" y="192.1666666666666" />
+  <SelectedNodes />
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+
