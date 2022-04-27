@@ -13,6 +13,7 @@ import tqs.assign.exceptions.NoCachedElementException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.*;
@@ -37,7 +38,7 @@ class CovidCacheTest {
 
     @BeforeEach
     void setUp() {
-        covidCache = new CovidCache(60L);
+        covidCache = new CovidCache(60L, 6000L);
     }
 
 
@@ -101,6 +102,20 @@ class CovidCacheTest {
                 queryResponses.size(),
                 noTtl.getSeconds()
             ), covidCache.statsSnapshot());
+    }
+
+    @Test
+    @DisplayName("Cache maximum size")
+    void whenGetResponseBeyondMaxSize_thenRemoveOlderResponses() {
+        covidCache = new CovidCache(Long.MAX_VALUE, 3L);
+        covidCache.store(testQuery, testResponse);
+        queryResponses.entrySet()
+                .stream()
+                .filter(entry -> !entry.getKey().equals(testQuery))
+                .forEach(entry -> covidCache.store(entry.getKey(), entry.getValue()));
+
+        assertEquals(3, covidCache.statsSnapshot().getStored());
+        assertTrue(covidCache.stale(testQuery));
     }
 
 }

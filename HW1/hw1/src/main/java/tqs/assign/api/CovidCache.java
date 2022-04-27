@@ -1,5 +1,6 @@
 package tqs.assign.api;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,44 +10,46 @@ import tqs.assign.data.ResponseData;
 import tqs.assign.exceptions.NoCachedElementException;
 
 import java.time.Instant;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
 
 @Component
 public class CovidCache {
 
-    @Getter
-    @Setter
-    private long ttl;
+    @Getter @Setter private long ttl;
 
     private int hits = 0;
     private int misses = 0;
 
-    private final Map<ApiQuery, ResponseData> cache = new HashMap<>();
-    private final Map<ApiQuery, Long> timestamps = new HashMap<>();
+    private final CovidCacheMap cache;
 
 
 
-    public CovidCache(@Value("${covid-cache.ttl}") final Long ttl) {
+    public CovidCache(
+            @Value("${covid-cache.ttl}") final Long ttl,
+            @Value("${covid-cache.max-size}") final Long maxSize) {
         this.ttl = ttl;
+
+        cache = new CovidCacheMap(maxSize);
     }
+
+    private record CacheValue(ResponseData response, Long timestamp) {}
 
 
 
     public void store(ApiQuery apiQuery, ResponseData responseData) {
-        cache.put(apiQuery, responseData);
-        timestamps.put(apiQuery, Instant.now().getEpochSecond());
+        cache.put(apiQuery, new CacheValue(responseData, Instant.now().getEpochSecond()));
     }
 
     public ResponseData get(ApiQuery apiQuery) {
         if (!cache.containsKey(apiQuery))
             throw new NoCachedElementException();
-        return cache.get(apiQuery);
+        return cache.get(apiQuery).response();
     }
 
     public boolean stale(ApiQuery apiQuery) {
-        return !timestamps.containsKey(apiQuery) || Instant.now().getEpochSecond() - timestamps.get(apiQuery) > ttl;
+        return !cache.containsKey(apiQuery) || Instant.now().getEpochSecond() - cache.get(apiQuery).timestamp() > ttl;
     }
 
     /**
@@ -77,12 +80,27 @@ public class CovidCache {
 
     public void clear() {
         cache.clear();
-        timestamps.clear();
     }
 
     public void resetStats() {
         hits = 0;
         misses = 0;
+    }
+
+
+
+    @EqualsAndHashCode(callSuper = true)
+    private static class CovidCacheMap extends LinkedHashMap<ApiQuery, CacheValue> {
+
+        private final long maxSize;
+
+        public CovidCacheMap(long maxSize) { this.maxSize = maxSize; }
+
+        @Override
+        protected boolean removeEldestEntry(Map.Entry eldest) {
+            return size() > maxSize;
+        }
+
     }
 
 }
