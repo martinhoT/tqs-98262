@@ -26,13 +26,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
+@TestPropertySource(
+        locations = "/application-test.properties",
+        properties = {
+                "api.covid-fu.enabled=false",
+                "api.johns-hopkins.enabled=false"
+        })
 class CovidControllerIntegrationTest {
 
     @Autowired
     private MockMvc mvc;
-
-    @MockBean private Covid19FastestUpdateApi covid19FastestUpdateApi;
-    @MockBean private JohnsHopkinsApi johnsHopkinsApi;
 
 
 
