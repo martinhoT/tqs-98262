@@ -3,6 +3,8 @@ name: HW1 CI
 on:
   push:
     branches: [ hw1 ]
+  pull_request:
+    brances: [ master ]
 
 jobs:
   verify-hw1:
