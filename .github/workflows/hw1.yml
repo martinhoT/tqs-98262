@@ -2,7 +2,7 @@ name: HW1 CI
 
 on:
   push:
-    branches: [ hw1, master ]
+    branches: [ hw1 ]
 
 jobs:
   verify-hw1:
